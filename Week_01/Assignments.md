@@ -80,13 +80,7 @@ public class Hello {
 
 ## 自定义一个ClassLoader,加载一个Hello.xlass文件，执行hello方法，此文件类容是一个Hello.class文件所有字节(x=255-x)处理后的文件。
 
-
-
-
-
-
-
-
+答案链接源码(https://github.com/maolikui/JAVA-01/tree/main/Week_01/code/Week_01)
 
 ## 画一张图，展示 Xmx、Xms、Xmn、Metaspache、DirectMemory、Xss 这些内存参数的关系。
 
