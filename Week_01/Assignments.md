@@ -130,7 +130,7 @@ public class Hello {
 
 并可以通过jstack -l 13872 | grep 'java.lang.Thread.State' | wc -l 统计线程数量
 
-![image-20210115153719476](C:\Users\DELL\AppData\Roaming\Typora\typora-user-images\image-20210115153719476.png)
+![image-20210115153719476](images\image-20210115153719476.png)
 
 
 
