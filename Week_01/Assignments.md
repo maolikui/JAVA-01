@@ -86,11 +86,11 @@ public class Hello {
 
 ### JVM简要架构
 
-![jvm](images\jvm.png)
+![jvm](images/jvm.png)
 
 ### 内存参数关系
 
-![runtime-data](images\runtime-data.png)
+![runtime-data](images/runtime-data.png)
 
 ## 检查一下自己维护的业务系统的 JVM 参数配置，用 jstat 和 jstack、jmap 查看一下详情，并且自己独立分析一下大概情况，思考有没有不合理的地方，如何改进。
 
@@ -100,37 +100,37 @@ public class Hello {
 
 每隔250ms 打印进程id为10208的gc情况，打印10次停止。
 
-![image-20210115133934193](images\image-20210115133934193.png)
+![image-20210115133934193](images/image-20210115133934193.png)
 
 显示ClassLoader相关信息
 
-![image-20210115135833597](images\image-20210115135833597.png)
+![image-20210115135833597](images/image-20210115135833597.png)
 
 每隔5s打印进程id为10208的gc情况，打印10次停止(各区域数据显示已使用的百分比)
 
-![image-20210115140151384](images\image-20210115140151384.png)
+![image-20210115140151384](images/image-20210115140151384.png)
 
 ### jinfo :实时查看和调整虚拟机各项参数
 
 查看-Xmx参数值
 
-![image-20210115140802844](images\image-20210115140802844.png)
+![image-20210115140802844](images/image-20210115140802844.png)
 
 ### jmap:生成堆转储快照
 
-![image-20210115141041179](images\image-20210115141041179.png)
+![image-20210115141041179](images/image-20210115141041179.png)
 
 默认情况下，在内存大于1G的，-Xmx为pc内存的1/4，-Xmn为堆内存的1/3。启动了UseAdaptiveSizePolicy情况下Eden和Survivor会动态调整。
 
 禁用AdaptiveSizePolicy,指定-Xmx和-Xms为4g后，Eden和S0,S1接近8:1:1,如下图所示：
 
-![image-20210115152749455](images\image-20210115152749455.png)
+![image-20210115152749455](images/image-20210115152749455.png)
 
 ### jstack: 生成虚拟机当前时刻的线程快照
 
 并可以通过jstack -l 13872 | grep 'java.lang.Thread.State' | wc -l 统计线程数量
 
-![image-20210115153719476](images\image-20210115153719476.png)
+![image-20210115153719476](images/image-20210115153719476.png)
 
 
 
