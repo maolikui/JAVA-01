@@ -41,17 +41,18 @@ public class HttpInboundHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         try {
             //测试转发请求方法
-//            String uri = fullRequest.uri();
+//            FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
+//            String uri = fullHttpRequest.uri();
 //            if (uri.contains("/api/hello")) {
-//                  handlerHello(fullRequest, ctx);
+//                handlerHello(fullHttpRequest, ctx);
 //            }
-//            okhttpOutboundHandler.handle(fullRequest, ctx);
+            //使用过滤器链
             FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
             RealChain realChain = new RealChain(ctx, okhttpOutboundHandler, filterList, 0);
-            DefaultFullHttpResponse fullHttpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NO_CONTENT);
-            realChain.doFilter(fullHttpRequest, fullHttpResponse);
+            realChain.doFilter(fullHttpRequest);
         } catch (Exception e) {
             e.printStackTrace();
+            ctx.close();
         } finally {
             ReferenceCountUtil.release(msg);
         }
@@ -66,7 +67,7 @@ public class HttpInboundHandler extends ChannelInboundHandlerAdapter {
     private void handlerHello(FullHttpRequest fullRequest, ChannelHandlerContext ctx) {
         FullHttpResponse response = null;
         try {
-            String s = OkHttpUtils.getInstance().get("http://localhost:8088/api/hello", null);
+            String s = OkHttpUtils.getInstance().get("http://192.168.19.130:8801/api/hello", null);
             response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.wrappedBuffer(s.getBytes("UTF-8")));
             response.headers().set("Content-Type", "application/json");
             response.headers().setInt("Content-Length", response.content().readableBytes());

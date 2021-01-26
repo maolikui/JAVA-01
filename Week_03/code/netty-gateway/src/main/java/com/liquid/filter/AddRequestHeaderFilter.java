@@ -1,6 +1,6 @@
 package com.liquid.filter;
 
-import cn.hutool.setting.Setting;
+import com.liquid.utils.GlobalSetting;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 
@@ -12,14 +12,12 @@ import java.util.Map;
  * @author Liquid
  */
 public class AddRequestHeaderFilter implements Filter {
-
     @Override
-    public void doFilter(FullHttpRequest fullHttpRequest, FullHttpResponse fullHttpResponse, FilterChain chain) {
-        Setting setting = new Setting("service_config.setting");
-        Map<String, String> headers = setting.getMap("req-headers");
+    public FullHttpResponse doFilter(FullHttpRequest fullHttpRequest, FilterChain chain) {
+        Map<String, String> headers = GlobalSetting.getInstance().getMap("req-headers");
         headers.forEach((key, Value) -> {
             fullHttpRequest.headers().set(key, Value);
         });
-        chain.doFilter(fullHttpRequest, fullHttpResponse);
+        return chain.doFilter(fullHttpRequest);
     }
 }

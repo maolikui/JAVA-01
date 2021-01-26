@@ -10,7 +10,7 @@ import io.netty.handler.codec.http.HttpUtil;
 import java.util.List;
 
 /**
- * FilterChain真正实现类
+ * FilterChain实现类
  *
  * @author Liquid
  */
@@ -29,14 +29,17 @@ public class RealChain implements FilterChain {
     }
 
     @Override
-    public void doFilter(FullHttpRequest fullHttpRequest, FullHttpResponse fullHttpResponse) {
+    public FullHttpResponse doFilter(FullHttpRequest fullHttpRequest) {
         if (index == filterList.size()) {
-            okhttpOutboundHandler.handle(fullHttpRequest, fullHttpResponse, ctx);
+            return okhttpOutboundHandler.handle(fullHttpRequest, ctx);
         } else {
+            //递归计数递增
             this.index++;
             Filter filter = filterList.get(index - 1);
-            filter.doFilter(fullHttpRequest, fullHttpResponse, this);
-            if (index == 1 && fullHttpRequest != null) {
+            FullHttpResponse fullHttpResponse = filter.doFilter(fullHttpRequest, this);
+            //递归回来计数递减
+            this.index--;
+            if (index == 0 && fullHttpRequest != null) {
                 if (!HttpUtil.isKeepAlive(fullHttpRequest)) {
                     ctx.write(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
                 } else {
@@ -44,7 +47,7 @@ public class RealChain implements FilterChain {
                     ctx.write(fullHttpResponse);
                 }
             }
+            return fullHttpResponse;
         }
-
     }
 }

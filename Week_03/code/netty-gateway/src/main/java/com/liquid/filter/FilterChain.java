@@ -9,5 +9,5 @@ import io.netty.handler.codec.http.FullHttpResponse;
  * @author Liquid
  */
 public interface FilterChain {
-    void doFilter(FullHttpRequest fullHttpRequest, FullHttpResponse fullHttpResponse);
+    FullHttpResponse doFilter(FullHttpRequest fullHttpRequest);
 }

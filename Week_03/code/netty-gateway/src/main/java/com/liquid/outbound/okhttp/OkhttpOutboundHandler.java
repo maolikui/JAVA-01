@@ -2,8 +2,8 @@ package com.liquid.outbound.okhttp;
 
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import cn.hutool.setting.Setting;
 import com.liquid.router.HttpEndpointRouter;
+import com.liquid.utils.GlobalSetting;
 import com.liquid.utils.OkHttpUtils;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -26,11 +26,11 @@ public class OkhttpOutboundHandler {
         this.httpEndpointRouter = httpEndpointRouter;
     }
 
-    public void handle(FullHttpRequest fullHttpRequest, FullHttpResponse fullHttpResponse, ChannelHandlerContext ctx) {
+    public FullHttpResponse handle(FullHttpRequest fullHttpRequest, ChannelHandlerContext ctx) {
+        FullHttpResponse fullHttpResponse = null;
         //负载均衡处理
         //模拟根据微服务名称获取服务列表
-        Setting setting = new Setting("service_config.setting");
-        Map<String, String> serviceMap = setting.getMap("service-name");
+        Map<String, String> serviceMap = GlobalSetting.getInstance().getMap("service-name");
         String route = httpEndpointRouter.route(serviceMap.values().stream().map(this::formatUrl).collect(Collectors.toList()));
         String url = route + fullHttpRequest.uri();
         HashMap<String, String> headers = new HashMap<>();
@@ -44,6 +44,7 @@ public class OkhttpOutboundHandler {
             log.error("处理测试接口出错", e);
             fullHttpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NO_CONTENT);
         }
+        return fullHttpResponse;
     }
 
     /**

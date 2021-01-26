@@ -1,6 +1,7 @@
 package com.liquid.inbound;
 
 import com.liquid.filter.AddRequestHeaderFilter;
+import com.liquid.filter.AddResponseHeaderFilter;
 import com.liquid.filter.Filter;
 import com.liquid.outbound.okhttp.OkhttpOutboundHandler;
 import com.liquid.router.RoundRobinRouter;
@@ -29,6 +30,7 @@ public class HttpInboundInitializer extends ChannelInitializer<SocketChannel> {
         //添加过滤器
         List<Filter> filterList = new ArrayList<>();
         filterList.add(new AddRequestHeaderFilter());
+        filterList.add(new AddResponseHeaderFilter());
         p.addLast(new HttpInboundHandler(new OkhttpOutboundHandler(roundRobinRouter), filterList));
     }
 }

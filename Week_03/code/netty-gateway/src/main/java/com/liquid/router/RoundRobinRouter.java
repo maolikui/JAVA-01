@@ -19,6 +19,7 @@ public class RoundRobinRouter implements HttpEndpointRouter {
      * @param endpoints 服务列表
      * @return
      */
+    @Override
     public String route(List<String> endpoints) {
         return CollUtil.isEmpty(endpoints) ? null : endpoints.get(Math.abs(idx.getAndIncrement() % endpoints.size()));
     }

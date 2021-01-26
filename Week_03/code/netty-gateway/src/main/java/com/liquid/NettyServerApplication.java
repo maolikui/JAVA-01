@@ -3,8 +3,8 @@ package com.liquid;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
-import cn.hutool.setting.Setting;
 import com.liquid.inbound.HttpInboundServer;
+import com.liquid.utils.GlobalSetting;
 
 /**
  * Netty Server启动类
@@ -18,8 +18,7 @@ public class NettyServerApplication {
 
     public static void main(String[] args) {
         //使用配置文件配置端口号信息
-        Setting setting = new Setting("service_config.setting");
-        Integer portConfig = setting.getInt("server.port");
+        Integer portConfig = GlobalSetting.getInstance().getInt("server.port");
         int port = ObjectUtil.isEmpty(portConfig) ? 8088 : portConfig;
         log.info(GATEWAY_NAME + " " + GATEWAY_VERSION + " starting...");
         HttpInboundServer server = new HttpInboundServer(port);
