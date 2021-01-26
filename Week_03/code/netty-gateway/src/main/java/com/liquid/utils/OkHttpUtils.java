@@ -110,6 +110,24 @@ public class OkHttpUtils {
     }
 
     /**
+     * get重载,添加Header
+     *
+     * @param url     请求的url
+     * @param queries 请求的参数，在浏览器？后面的数据，没有可以传null
+     * @param headers 添加的请求头
+     * @return
+     */
+    public String get(String url, Map<String, String> queries, Map<String, String> headers) {
+        StringBuffer sb = getQueryString(url, queries);
+        Request.Builder builder = new Request.Builder().url(sb.toString());
+        headers.forEach((key, value) -> {
+            builder.addHeader(key, value);
+        });
+        Request request = builder.build();
+        return execNewCall(request);
+    }
+
+    /**
      * post
      *
      * @param url    请求的url
@@ -134,9 +152,6 @@ public class OkHttpUtils {
 
     /**
      * Post请求发送JSON数据....{"name":"zhangsan","pwd":"123456"}
-     * 参数一：请求Url
-     * 参数二：请求的JSON
-     * 参数三：请求回调
      */
     public String postJsonParams(String url, String jsonParams) {
         RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), jsonParams);
@@ -149,9 +164,6 @@ public class OkHttpUtils {
 
     /**
      * Post请求发送xml数据....
-     * 参数一：请求Url
-     * 参数二：请求的xmlString
-     * 参数三：请求回调
      */
     public String postXmlParams(String url, String xml) {
         RequestBody requestBody = RequestBody.create(MediaType.parse("application/xml; charset=utf-8"), xml);

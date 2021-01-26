@@ -21,7 +21,6 @@ public class NettyServerApplication {
         Setting setting = new Setting("service_config.setting");
         Integer portConfig = setting.getInt("server.port");
         int port = ObjectUtil.isEmpty(portConfig) ? 8088 : portConfig;
-        log.info("", "");
         log.info(GATEWAY_NAME + " " + GATEWAY_VERSION + " starting...");
         HttpInboundServer server = new HttpInboundServer(port);
         log.info(GATEWAY_NAME + " " + GATEWAY_VERSION + " started at http://localhost:{}", port);

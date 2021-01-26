@@ -2,6 +2,9 @@ package com.liquid.inbound;
 
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.liquid.filter.Filter;
+import com.liquid.filter.RealChain;
+import com.liquid.outbound.okhttp.OkhttpOutboundHandler;
 import com.liquid.utils.OkHttpUtils;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
@@ -9,6 +12,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.*;
 import io.netty.util.ReferenceCountUtil;
+
+import java.util.List;
 
 
 /**
@@ -19,7 +24,13 @@ import io.netty.util.ReferenceCountUtil;
 public class HttpInboundHandler extends ChannelInboundHandlerAdapter {
 
     private static Log log = LogFactory.get();
+    private OkhttpOutboundHandler okhttpOutboundHandler;
+    private List<Filter> filterList;
 
+    public HttpInboundHandler(OkhttpOutboundHandler okhttpOutboundHandler, List<Filter> filterList) {
+        this.okhttpOutboundHandler = okhttpOutboundHandler;
+        this.filterList = filterList;
+    }
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) {
@@ -29,17 +40,16 @@ public class HttpInboundHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         try {
-            FullHttpRequest fullRequest = (FullHttpRequest) msg;
-            String uri = fullRequest.uri();
             //测试转发请求方法
+//            String uri = fullRequest.uri();
 //            if (uri.contains("/api/hello")) {
 //                  handlerHello(fullRequest, ctx);
 //            }
-
-
-
-//            handler.handle(fullRequest, ctx);
-
+//            okhttpOutboundHandler.handle(fullRequest, ctx);
+            FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
+            RealChain realChain = new RealChain(ctx, okhttpOutboundHandler, filterList, 0);
+            DefaultFullHttpResponse fullHttpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NO_CONTENT);
+            realChain.doFilter(fullHttpRequest, fullHttpResponse);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

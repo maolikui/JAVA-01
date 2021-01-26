@@ -1,4 +1,11 @@
 server.port=8089
 
-[service]
+[service-name]
+0=http://localhost:8801/
+1=http://localhost:8802/
+2=http://localhost:8803/
 
+[req-headers]
+mao=soul
+[res-headers]
+kk=java-1-nio
