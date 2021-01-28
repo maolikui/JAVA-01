@@ -3,7 +3,8 @@ package com.liquid.inbound;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.liquid.filter.Filter;
-import com.liquid.filter.RealChain;
+import com.liquid.outbound.asyncttpclient.AsyncHttpClient;
+import com.liquid.outbound.asyncttpclient.HttpResponseFuture;
 import com.liquid.outbound.okhttp.OkhttpOutboundHandler;
 import com.liquid.utils.OkHttpUtils;
 import io.netty.buffer.Unpooled;
@@ -13,7 +14,9 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.*;
 import io.netty.util.ReferenceCountUtil;
 
+import java.net.URI;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 
 /**
@@ -47,9 +50,27 @@ public class HttpInboundHandler extends ChannelInboundHandlerAdapter {
 //                handlerHello(fullHttpRequest, ctx);
 //            }
             //使用过滤器链
+//            FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
+//            RealChain realChain = new RealChain(ctx, okhttpOutboundHandler, filterList, 0);
+//            realChain.doFilter(fullHttpRequest);
             FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
-            RealChain realChain = new RealChain(ctx, okhttpOutboundHandler, filterList, 0);
-            realChain.doFilter(fullHttpRequest);
+            AsyncHttpClient httpClient = new AsyncHttpClient();
+            HttpResponseFuture httpResponseFuture = httpClient.execGet(new URI("http://localhost:8088" + fullHttpRequest.uri()), null, null);
+            httpResponseFuture.addListener(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        HttpResponse response = httpResponseFuture.get();
+                        System.out.println(response.toString());
+                        System.out.println("CONTENT_TYPE:" + response.headers().get(HttpHeaders.Names.CONTENT_TYPE));
+                        System.out.println(response.decoderResult());
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
         } catch (Exception e) {
             e.printStackTrace();
             ctx.close();
