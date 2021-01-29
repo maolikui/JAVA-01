@@ -28,17 +28,17 @@ Avg: 5.8ms
 99.9%   below 83ms
 ```
 
-答案链接源码()
+答案链接源码(https://github.com/maolikui/JAVA-01/tree/main/Week_03/code/netty-gateway)
 
 ## （选做）使用 netty 实现后端 http 访问（代替上一步骤）。
 
-答案链接源码()
+答案链接源码(https://github.com/maolikui/JAVA-01/tree/main/Week_03/code/netty-gateway)
 
 # 第二次课(20210124)
 
 ## （必做）实现过滤器。 
 
-答案链接源码()
+答案链接源码(https://github.com/maolikui/JAVA-01/tree/main/Week_03/code/netty-gateway)
 
 ## （选做）实现路由。
 
@@ -66,6 +66,4 @@ Avg: 2.8ms
 99.9%   below 42ms
 ```
 
-
-
-答案链接源码()
+答案链接源码(https://github.com/maolikui/JAVA-01/tree/main/Week_03/code/netty-gateway)
