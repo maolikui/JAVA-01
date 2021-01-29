@@ -9,17 +9,13 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.*;
-import io.netty.util.AttributeKey;
 
-import java.net.Proxy;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static io.netty.handler.codec.http.HttpMethod.GET;
-import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
+import static io.netty.handler.codec.http.HttpVersion.HTTP_1_0;
 
 /**
  * 异步Http Client
@@ -29,7 +25,6 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 public class AsyncHttpClient {
     private final Bootstrap httpBootstrap;
     private final Queue<HttpResponseFuture> mFutures = new ConcurrentLinkedQueue<HttpResponseFuture>();
-    private static final AttributeKey<Object> DEFAULT_ATTRIBUTE = AttributeKey.valueOf("default");
 
     public AsyncHttpClient() {
         EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -40,47 +35,33 @@ public class AsyncHttpClient {
         httpBootstrap.handler(new ChannelInitializer<SocketChannel>() {
             @Override
             public void initChannel(SocketChannel ch) throws Exception {
-                // 客户端接收到的是httpResponse响应，所以要使用HttpResponseDecoder进行解码
                 ch.pipeline().addLast(new HttpResponseDecoder());
-//                客户端发送的是httprequest，所以要使用HttpRequestEncoder进行编码
                 ch.pipeline().addLast(new HttpRequestEncoder());
                 ch.pipeline().addLast(new HttpHandler());
             }
         });
     }
 
-    public HttpResponseFuture execGet(URI uri, Map<String, Object> headers, Proxy proxy) {
-        HttpRequest request = buildRequest(GET, uri, headers, null, proxy);
-        return execRequest(request, uri, proxy);
+    public HttpResponseFuture execGet(String url, Map<String, Object> headers) {
+        UriParser parser = new UriParser();
+        parser.parse(null, url);
+        HttpRequest request = buildRequest(GET, parser.path, headers, null);
+        return execRequest(request, parser);
     }
 
-    private HttpRequest buildRequest(HttpMethod method, URI uri,
-                                     Map<String, Object> headers, Map<String, Object> params,
-                                     Proxy proxy) {
-        HttpRequest request = new DefaultHttpRequest(HTTP_1_1, method, uri.toString());
-        return request;
+    private HttpRequest buildRequest(HttpMethod method, String url, Map<String, Object> headers, Map<String, Object> params) {
+        FullHttpRequest httpRequest = new DefaultFullHttpRequest(HTTP_1_0, method, url);
+        httpRequest.headers().add(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+        // httpRequest.headers().add(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=UTF-8");
+        httpRequest.headers().add(HttpHeaderNames.CONTENT_LENGTH, httpRequest.content().readableBytes());
+        return httpRequest;
     }
 
-    private HttpResponseFuture execRequest(HttpRequest request, URI uri,
-                                           Proxy proxy)  {
-        if (proxy == null) {
-            proxy = Proxy.NO_PROXY;
-        }
-        URI uriTemp = null;
+    private HttpResponseFuture execRequest(HttpRequest request, UriParser parser) {
+        final HttpResponseFuture future = new HttpResponseFuture(60 * 1000 * 1000, request);
         try {
-            uriTemp = new URI("/api/hello");
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
-        FullHttpRequest requestTemp = new DefaultFullHttpRequest(HttpVersion.HTTP_1_0, HttpMethod.GET, uriTemp.toASCIIString());
-        requestTemp.headers().add(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
-        requestTemp.headers().add(HttpHeaderNames.CONTENT_LENGTH, requestTemp.content().readableBytes());
-
-        final HttpResponseFuture future = new HttpResponseFuture(60, requestTemp);
-        try {
-            ChannelFuture cf = httpBootstrap.connect("127.0.0.1", 8088);
-            cf.addListener(new ConnectionListener(future, uri,
-                    false));
+            ChannelFuture cf = httpBootstrap.connect(parser.host, parser.port);
+            cf.addListener(new ConnectionListener(future));
             mFutures.add(future);
         } catch (Exception e) {
             e.printStackTrace();

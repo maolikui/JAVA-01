@@ -58,8 +58,6 @@ public class NettyHttpClient {
 
     public void submit(String host, Integer port, HttpRequest request, final AtomicBoolean cancelled) {
         ChannelFuture channelFuture = bootstrap.connect(host, port);
-
-
         channelFuture.addListener(new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
@@ -75,13 +73,6 @@ public class NettyHttpClient {
                     }
                     return;
                 }
-
-
-//                Channel channel = future.channel();
-//                ChannelPromise promise = channel.newPromise();
-//                ChannelFuture f = channel.writeAndFlush(request, promise);
-//                Void aVoid = f.get();
-//                f.addListener(new WriteCompleteListener(future));
             }
         });
     }

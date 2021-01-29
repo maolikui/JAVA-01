@@ -2,9 +2,13 @@ package com.liquid.outbound.asyncttpclient;
 
 import java.util.concurrent.Future;
 
+/**
+ * 自定义响应Future
+ *
+ * @param <V>
+ * @author Liquid
+ */
 public interface ResponseFuture<V> extends Future<V> {
-    boolean isTimeout();
-
     boolean done(V result);
 
     void touch();

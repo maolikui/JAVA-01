@@ -3,7 +3,8 @@ package com.liquid.inbound;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.liquid.filter.Filter;
-import com.liquid.outbound.netty4.NettyHttpClient2;
+import com.liquid.outbound.asyncttpclient.AsyncHttpClient;
+import com.liquid.outbound.asyncttpclient.HttpResponseFuture;
 import com.liquid.outbound.okhttp.OkhttpOutboundHandler;
 import com.liquid.router.HttpEndpointRouter;
 import com.liquid.utils.ExecutorUtils;
@@ -15,8 +16,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.*;
 import io.netty.util.ReferenceCountUtil;
-import org.asynchttpclient.ListenableFuture;
-import org.asynchttpclient.Response;
 
 import java.util.List;
 import java.util.Map;
@@ -49,67 +48,88 @@ public class HttpInboundHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-//        try {
-//            //测试转发请求方法
-////            FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
-////            String uri = fullHttpRequest.uri();
-////            if (uri.contains("/api/hello")) {
-////                handlerHello(fullHttpRequest, ctx);
-////            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            ctx.close();
-//        } finally {
-//            ReferenceCountUtil.release(msg);
-//        }
-        //测试OkHttp client转发请求方法
-//        ExecutorUtils.getInstance().submit(() -> {
-//            try {
-//                FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
-        //使用过滤器链
-//                //异步执行
-//                RealChain realChain = new RealChain(ctx, okhttpOutboundHandler, filterList, 0);
-//                realChain.doFilter(fullHttpRequest);
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//                ctx.close();
-//            } finally {
-//                ReferenceCountUtil.release(msg);
-//            }
-        FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
-        Map<String, String> serviceMap = GlobalSetting.getInstance().getMap("service-name");
-        String route = httpEndpointRouter.route(serviceMap.values().stream().map(this::formatUrl).collect(Collectors.toList()));
-        ListenableFuture<Response> whenResponse = NettyHttpClient2.getInstance().getAsyncHttpClient().prepareGet(route + fullHttpRequest.uri()).setReadTimeout(60 * 60 * 1000).setRequestTimeout(60 * 60 * 1000)
-                .execute();
-        Runnable callback = () -> {
-            try {
-//                final ChannelHandlerContext ctxLast = ctx;
-                Response response = whenResponse.get();
-                FullHttpResponse fullHttpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.wrappedBuffer(response.getResponseBody().getBytes("UTF-8")));
-                fullHttpResponse.headers().set("Content-Type", "application/json");
-                fullHttpResponse.headers().setInt("Content-Length", fullHttpResponse.content().readableBytes());
-                if (!HttpUtil.isKeepAlive(fullHttpRequest)) {
-                    ctx.write(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
-                } else {
-                    ctx.write(fullHttpResponse);
+        // ================1.测试转发请求方法====================
+        //  try {
+        //     FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
+        //     String uri = fullHttpRequest.uri();
+        //     if (uri.contains("/api/hello")) {
+        //         handlerHello(fullHttpRequest, ctx);
+        //     }
+        // } catch (Exception e) {
+        //     e.printStackTrace();
+        //     ctx.close();
+        // } finally {
+        //     ReferenceCountUtil.release(msg);
+        // }
+        //================2.测试OkHttp client(过滤器,路由)转发请求方法============================
+        // ExecutorUtils.getInstance().submit(() -> {
+        //     try {
+        //         FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
+        //         //使用过滤器链
+        //         //异步执行
+        //         RealChain realChain = new RealChain(ctx, okhttpOutboundHandler, filterList, 0);
+        //         realChain.doFilter(fullHttpRequest);
+        //     } catch (Exception e) {
+        //         e.printStackTrace();
+        //         ctx.close();
+        //     } finally {
+        //         ReferenceCountUtil.release(msg);
+        //     }
+        //=================3.自定义AsyncHttpClient========================================
+        try {
+            FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
+            AsyncHttpClient httpClient = new AsyncHttpClient();
+            Map<String, String> serviceMap = GlobalSetting.getInstance().getMap("service-name");
+            String route = httpEndpointRouter.route(serviceMap.values().stream().map(this::formatUrl).collect(Collectors.toList()));
+            HttpResponseFuture httpResponseFuture = httpClient.execGet(route + fullHttpRequest.uri(), null);
+            httpResponseFuture.setExecutor(ExecutorUtils.getInstance().getExecutor());
+            httpResponseFuture.addListener(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        FullHttpResponse fullHttpResponse = httpResponseFuture.get();
+                        ctx.writeAndFlush(fullHttpResponse);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    }
                 }
-                ctx.flush();
-//                log.info(response.toString());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                ReferenceCountUtil.release(msg);
-            }
-        };
-        whenResponse.addListener(callback, ExecutorUtils.getInstance().
+            });
+        } catch (Exception e) {
+            ReferenceCountUtil.release(msg);
+        }
+        //================4.使用开源Netty异步库=====================================
+        // FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
+        // Map<String, String> serviceMap = GlobalSetting.getInstance().getMap("service-name");
+        // String route = httpEndpointRouter.route(serviceMap.values().stream().map(this::formatUrl).collect(Collectors.toList()));
+        // ListenableFuture<Response> whenResponse = NettyHttpClient2.getInstance().getAsyncHttpClient().prepareGet(route + fullHttpRequest.uri())
+        //         .execute();
+        // Runnable callback = () -> {
+        //     try {
+        //         Response response = whenResponse.get();
+        //         FullHttpResponse fullHttpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.wrappedBuffer(response.getResponseBody().getBytes("UTF-8")));
+        //         fullHttpResponse.headers().set("Content-Type", "application/json");
+        //         fullHttpResponse.headers().setInt("Content-Length", fullHttpResponse.content().readableBytes());
+        //         if (!HttpUtil.isKeepAlive(fullHttpRequest)) {
+        //             ctx.write(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
+        //         } else {
+        //             ctx.write(fullHttpResponse);
+        //         }
+        //         ctx.flush();
+        //     } catch (InterruptedException e) {
+        //         e.printStackTrace();
+        //     } catch (ExecutionException e) {
+        //         e.printStackTrace();
+        //     } catch (Exception e) {
+        //         e.printStackTrace();
+        //     } finally {
+        //         ReferenceCountUtil.release(msg);
+        //     }
+        // };
+        // whenResponse.addListener(callback, ExecutorUtils.getInstance().getExecutor());
 
-                getExecutor());
-
-//      NettyHttpClient.getInstance().submit("192.168.19.130", 8801, fullHttpRequest, new AtomicBoolean());
+        // NettyHttpClient.getInstance().submit("192.168.19.130", 8801, fullHttpRequest, new AtomicBoolean());
     }
 
     /**
