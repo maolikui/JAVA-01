@@ -2,6 +2,7 @@ package com.liquid.inbound;
 
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.liquid.router.RoundRobinRouter;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
@@ -46,7 +47,7 @@ public class HttpInboundServer {
                     .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
 
             b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
-                    .handler(new LoggingHandler(LogLevel.INFO)).childHandler(new HttpInboundInitializer());
+                    .handler(new LoggingHandler(LogLevel.INFO)).childHandler(new HttpInboundInitializer(new RoundRobinRouter()));
 
             Channel ch = b.bind(port).sync().channel();
             log.info("开启netty http服务器，监听地址和端口为 http://127.0.0.1:" + port + '/');

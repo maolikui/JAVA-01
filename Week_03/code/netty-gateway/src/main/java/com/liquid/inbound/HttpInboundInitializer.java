@@ -20,6 +20,12 @@ import java.util.List;
  * @author Liquid
  */
 public class HttpInboundInitializer extends ChannelInitializer<SocketChannel> {
+    private RoundRobinRouter router;
+
+    public HttpInboundInitializer(RoundRobinRouter router) {
+        this.router = router;
+    }
+
     @Override
     public void initChannel(SocketChannel ch) {
         ChannelPipeline p = ch.pipeline();
@@ -31,6 +37,6 @@ public class HttpInboundInitializer extends ChannelInitializer<SocketChannel> {
         List<Filter> filterList = new ArrayList<>();
         filterList.add(new AddRequestHeaderFilter());
         filterList.add(new AddResponseHeaderFilter());
-        p.addLast(new HttpInboundHandler(new OkhttpOutboundHandler(roundRobinRouter), filterList));
+        p.addLast(new HttpInboundHandler(new OkhttpOutboundHandler(roundRobinRouter), filterList, router));
     }
 }

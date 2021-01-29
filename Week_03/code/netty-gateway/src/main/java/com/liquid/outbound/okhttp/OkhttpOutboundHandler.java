@@ -48,6 +48,27 @@ public class OkhttpOutboundHandler {
     }
 
     /**
+     * 用于压测处理直接返回给客户端请求的情况
+     *
+     * @param fullRequest
+     * @param ctx
+     * @return
+     */
+    public FullHttpResponse handlerDirect(FullHttpRequest fullRequest, ChannelHandlerContext ctx) {
+        FullHttpResponse fullHttpResponse = null;
+        try {
+            String value = "hello,kimmking";
+            fullHttpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.wrappedBuffer(value.getBytes("UTF-8")));
+            fullHttpResponse.headers().set("Content-Type", "application/json");
+            fullHttpResponse.headers().setInt("Content-Length", fullHttpResponse.content().readableBytes());
+        } catch (Exception e) {
+            System.out.println("处理出错:" + e.getMessage());
+            fullHttpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NO_CONTENT);
+        }
+        return fullHttpResponse;
+    }
+
+    /**
      * 格式化url字符串
      *
      * @param url

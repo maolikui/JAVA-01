@@ -31,7 +31,8 @@ public class RealChain implements FilterChain {
     @Override
     public FullHttpResponse doFilter(FullHttpRequest fullHttpRequest) {
         if (index == filterList.size()) {
-            return okhttpOutboundHandler.handle(fullHttpRequest, ctx);
+//            return okhttpOutboundHandler.handle(fullHttpRequest, ctx);
+            return okhttpOutboundHandler.handlerDirect(fullHttpRequest, ctx);
         } else {
             //递归计数递增
             this.index++;
@@ -43,9 +44,9 @@ public class RealChain implements FilterChain {
                 if (!HttpUtil.isKeepAlive(fullHttpRequest)) {
                     ctx.write(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
                 } else {
-                    fullHttpResponse.headers().set("keep-alive", true);
                     ctx.write(fullHttpResponse);
                 }
+                ctx.flush();
             }
             return fullHttpResponse;
         }
