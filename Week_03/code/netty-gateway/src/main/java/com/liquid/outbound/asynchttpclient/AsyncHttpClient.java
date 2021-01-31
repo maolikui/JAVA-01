@@ -1,4 +1,4 @@
-package com.liquid.outbound.asyncttpclient;
+package com.liquid.outbound.asynchttpclient;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
@@ -11,8 +11,6 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.*;
 
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static io.netty.handler.codec.http.HttpMethod.GET;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_0;
@@ -24,9 +22,8 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_0;
  */
 public class AsyncHttpClient {
     private final Bootstrap httpBootstrap;
-    private final Queue<HttpResponseFuture> mFutures = new ConcurrentLinkedQueue<HttpResponseFuture>();
 
-    public AsyncHttpClient() {
+    private AsyncHttpClient() {
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         this.httpBootstrap = new Bootstrap();
         httpBootstrap.group(workerGroup);
@@ -40,6 +37,14 @@ public class AsyncHttpClient {
                 ch.pipeline().addLast(new HttpHandler());
             }
         });
+    }
+
+    private static class AsyncHttpClientHolder {
+        private static AsyncHttpClient INSTANCE = new AsyncHttpClient();
+    }
+
+    public static AsyncHttpClient getInstance() {
+        return AsyncHttpClientHolder.INSTANCE;
     }
 
     public HttpResponseFuture execGet(String url, Map<String, Object> headers) {
@@ -62,7 +67,6 @@ public class AsyncHttpClient {
         try {
             ChannelFuture cf = httpBootstrap.connect(parser.host, parser.port);
             cf.addListener(new ConnectionListener(future));
-            mFutures.add(future);
         } catch (Exception e) {
             e.printStackTrace();
         }

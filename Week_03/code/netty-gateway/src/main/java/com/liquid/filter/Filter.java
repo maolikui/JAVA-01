@@ -9,5 +9,20 @@ import io.netty.handler.codec.http.FullHttpResponse;
  * @author Liquid
  */
 public interface Filter {
+    /**
+     * 用于链式调用
+     *
+     * @param fullHttpRequest
+     * @param chain
+     * @return
+     */
     FullHttpResponse doFilter(FullHttpRequest fullHttpRequest, FilterChain chain);
+
+    /**
+     * 用于异步处理Response
+     *
+     * @param fullHttpResponse
+     * @return
+     */
+    void filter(FullHttpResponse fullHttpResponse);
 }

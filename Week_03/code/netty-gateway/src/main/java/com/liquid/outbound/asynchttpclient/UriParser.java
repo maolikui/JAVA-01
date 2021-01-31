@@ -1,7 +1,7 @@
-package com.liquid.outbound.asyncttpclient;
+package com.liquid.outbound.asynchttpclient;
 
-import static org.asynchttpclient.util.Assertions.assertNotNull;
-import static org.asynchttpclient.util.MiscUtils.isNonEmpty;
+
+import cn.hutool.core.util.StrUtil;
 
 /**
  * 自定义Uri解析类
@@ -18,7 +18,6 @@ final class UriParser {
     private String authority;
     public String path;
     public String userInfo;
-
     private String originalUrl;
     private int start, end, currentIndex = 0;
 
@@ -85,10 +84,9 @@ final class UriParser {
 
             // see RFC2396 5.2.3
             String contextPath = context.getPath();
-            if (isNonEmpty(contextPath) && contextPath.charAt(0) == '/') {
+            if (StrUtil.isNotEmpty(contextPath) && contextPath.charAt(0) == '/') {
                 scheme = null;
             }
-
             if (scheme == null) {
                 scheme = context.getScheme();
                 userInfo = context.getUserInfo();
@@ -298,7 +296,7 @@ final class UriParser {
             }
 
             // see RFC2396 5.2.4: ignore context path if authority is defined
-            if (isNonEmpty(authority)) {
+            if (StrUtil.isNotEmpty(authority)) {
                 path = "";
             }
         }
@@ -307,11 +305,11 @@ final class UriParser {
     private void computeRegularPath() {
         if (originalUrl.charAt(currentIndex) == '/') {
             path = originalUrl.substring(currentIndex, end);
-        } else if (isNonEmpty(path)) {
+        } else if (StrUtil.isNotEmpty(path)) {
             handleRelativePath();
         } else {
             String pathEnd = originalUrl.substring(currentIndex, end);
-            path = isNonEmpty(pathEnd) && pathEnd.charAt(0) != '/' ? "/" + pathEnd : pathEnd;
+            path = StrUtil.isNotEmpty(pathEnd) && pathEnd.charAt(0) != '/' ? "/" + pathEnd : pathEnd;
         }
         handlePathDots();
     }
@@ -334,7 +332,6 @@ final class UriParser {
 
     public void parse(Uri context, final String originalUrl) {
 
-        assertNotNull(originalUrl, "originalUrl");
         this.originalUrl = originalUrl;
         this.end = originalUrl.length();
 

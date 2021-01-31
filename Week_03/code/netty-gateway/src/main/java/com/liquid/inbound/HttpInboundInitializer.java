@@ -3,7 +3,7 @@ package com.liquid.inbound;
 import com.liquid.filter.AddRequestHeaderFilter;
 import com.liquid.filter.AddResponseHeaderFilter;
 import com.liquid.filter.Filter;
-import com.liquid.outbound.okhttp.OkhttpOutboundHandler;
+import com.liquid.outbound.asynchttpclient.NettyOutboundHandler;
 import com.liquid.router.RoundRobinRouter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -37,6 +37,10 @@ public class HttpInboundInitializer extends ChannelInitializer<SocketChannel> {
         List<Filter> filterList = new ArrayList<>();
         filterList.add(new AddRequestHeaderFilter());
         filterList.add(new AddResponseHeaderFilter());
-        p.addLast(new HttpInboundHandler(new OkhttpOutboundHandler(roundRobinRouter), filterList, router));
+        //为异步转发添加响应过滤器
+        List<Filter> responsefilterList = new ArrayList<>();
+        responsefilterList.add(new AddResponseHeaderFilter());
+        // p.addLast(new HttpInboundHandler(new OkhttpOutboundHandler(roundRobinRouter),null, filterList, router));
+        p.addLast(new HttpInboundHandler(null, new NettyOutboundHandler(roundRobinRouter, responsefilterList), filterList, router));
     }
 }

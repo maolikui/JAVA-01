@@ -3,12 +3,10 @@ package com.liquid.inbound;
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
 import com.liquid.filter.Filter;
-import com.liquid.outbound.asyncttpclient.AsyncHttpClient;
-import com.liquid.outbound.asyncttpclient.HttpResponseFuture;
+import com.liquid.filter.RealChain;
+import com.liquid.outbound.asynchttpclient.NettyOutboundHandler;
 import com.liquid.outbound.okhttp.OkhttpOutboundHandler;
 import com.liquid.router.HttpEndpointRouter;
-import com.liquid.utils.ExecutorUtils;
-import com.liquid.utils.GlobalSetting;
 import com.liquid.utils.OkHttpUtils;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
@@ -18,9 +16,6 @@ import io.netty.handler.codec.http.*;
 import io.netty.util.ReferenceCountUtil;
 
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 /**
  * Http请求入站处理器
@@ -31,12 +26,14 @@ public class HttpInboundHandler extends ChannelInboundHandlerAdapter {
 
     private static Log log = LogFactory.get();
     private OkhttpOutboundHandler okhttpOutboundHandler;
+    private NettyOutboundHandler nettyOutboundHandler;
     private List<Filter> filterList;
     private HttpEndpointRouter httpEndpointRouter;
 
 
-    public HttpInboundHandler(OkhttpOutboundHandler okhttpOutboundHandler, List<Filter> filterList, HttpEndpointRouter httpEndpointRouter) {
+    public HttpInboundHandler(OkhttpOutboundHandler okhttpOutboundHandler, NettyOutboundHandler nettyOutboundHandler, List<Filter> filterList, HttpEndpointRouter httpEndpointRouter) {
         this.okhttpOutboundHandler = okhttpOutboundHandler;
+        this.nettyOutboundHandler = nettyOutboundHandler;
         this.filterList = filterList;
         this.httpEndpointRouter = httpEndpointRouter;
     }
@@ -78,27 +75,41 @@ public class HttpInboundHandler extends ChannelInboundHandlerAdapter {
         //=================3.自定义AsyncHttpClient========================================
         try {
             FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
-            AsyncHttpClient httpClient = new AsyncHttpClient();
-            Map<String, String> serviceMap = GlobalSetting.getInstance().getMap("service-name");
-            String route = httpEndpointRouter.route(serviceMap.values().stream().map(this::formatUrl).collect(Collectors.toList()));
-            HttpResponseFuture httpResponseFuture = httpClient.execGet(route + fullHttpRequest.uri(), null);
-            httpResponseFuture.setExecutor(ExecutorUtils.getInstance().getExecutor());
-            httpResponseFuture.addListener(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        FullHttpResponse fullHttpResponse = httpResponseFuture.get();
-                        ctx.writeAndFlush(fullHttpResponse);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
+            //使用过滤器链
+            //异步执行
+            RealChain realChain = new RealChain(ctx, null, nettyOutboundHandler, filterList, 0);
+            realChain.doFilter(fullHttpRequest);
         } catch (Exception e) {
+            e.printStackTrace();
+            ctx.close();
+        } finally {
             ReferenceCountUtil.release(msg);
         }
+
+
+        // try {
+        //     FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
+        //     AsyncHttpClient httpClient = AsyncHttpClient.getInstance();
+        //     Map<String, String> serviceMap = GlobalSetting.getInstance().getMap("service-name");
+        //     String route = httpEndpointRouter.route(serviceMap.values().stream().map(this::formatUrl).collect(Collectors.toList()));
+        //     HttpResponseFuture httpResponseFuture = httpClient.execGet(route + fullHttpRequest.uri(), null);
+        //     httpResponseFuture.setExecutor(ExecutorUtils.getInstance().getExecutor());
+        //     httpResponseFuture.addListener(new Runnable() {
+        //         @Override
+        //         public void run() {
+        //             try {
+        //                 FullHttpResponse fullHttpResponse = httpResponseFuture.get();
+        //                 ctx.writeAndFlush(fullHttpResponse);
+        //             } catch (InterruptedException e) {
+        //                 e.printStackTrace();
+        //             } catch (ExecutionException e) {
+        //                 e.printStackTrace();
+        //             }
+        //         }
+        //     });
+        // } catch (Exception e) {
+        //     ReferenceCountUtil.release(msg);
+        // }
         //================4.使用开源Netty异步库=====================================
         // FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
         // Map<String, String> serviceMap = GlobalSetting.getInstance().getMap("service-name");

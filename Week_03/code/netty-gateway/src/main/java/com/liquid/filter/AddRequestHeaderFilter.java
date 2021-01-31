@@ -20,4 +20,9 @@ public class AddRequestHeaderFilter implements Filter {
         });
         return chain.doFilter(fullHttpRequest);
     }
+
+    @Override
+    public void filter(FullHttpResponse fullHttpResponse) {
+
+    }
 }

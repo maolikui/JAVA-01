@@ -1,4 +1,4 @@
-package com.liquid.outbound.asyncttpclient;
+package com.liquid.outbound.asynchttpclient;
 
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.FullHttpResponse;
@@ -60,11 +60,18 @@ public class HttpResponseFuture extends AbstractResponseFuture<FullHttpResponse>
             throws InterruptedException, ExecutionException, TimeoutException {
         long time = unit.toMillis(timeout);
         long wait = time + mTouchTime - currentTimeMillis();
-        while (mLatch.getCount() > 0 && wait > 0) {
+        if (mLatch.getCount() < 1 && wait > 0) {
+            return mResult.get();
+        }
+        //请求线程没有处理完也没有超时
+        if (mLatch.getCount() > 0 && wait > 0) {
             mLatch.await(wait, MILLISECONDS);
             wait = time + mTouchTime - currentTimeMillis();
+            if (wait > 0) {
+                return mResult.get();
+            }
         }
-        // done(Constants.TIMEOUT);
+        done(Constants.TIMEOUT);
         return mResult.get();
     }
 

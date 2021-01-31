@@ -1,4 +1,4 @@
-package com.liquid.outbound.asyncttpclient;
+package com.liquid.outbound.asynchttpclient;
 
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpResponse;
