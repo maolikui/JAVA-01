@@ -2,7 +2,7 @@
 
 ## 思考有多少种方式，在main函数启动一个新线程，运行一个方法，拿到这个方法的返回值后，退出主线程？写出你的方法，越多越好，提交到github。
 
-答案链接源码()
+答案链接源码(https://github.com/maolikui/JAVA-01/tree/main/Week_04/code/conc-homework)
 
 # 第二次课(20210131)
 

@@ -1,6 +1,6 @@
 package com.liquid;
 
-import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Exchanger;
 
 /**
  * 测试类
@@ -113,18 +113,25 @@ public class Test {
         // countDownLatch.await();
 
         //方法十三：CyclicBarrier
-        CyclicBarrier barrier = new CyclicBarrier(2);
-        MyRunnable7<Integer> runnable = new MyRunnable7<>();
-        runnable.setCyclicBarrier(barrier);
+        // CyclicBarrier barrier = new CyclicBarrier(2);
+        //         // MyRunnable7<Integer> runnable = new MyRunnable7<>();
+        //         // runnable.setCyclicBarrier(barrier);
+        //         // Thread thread = new Thread(runnable);
+        //         // thread.start();
+        //         // barrier.await();
+
+        //方法十四：Exchanger
+        Exchanger<Result<Integer>> exchanger = new Exchanger<>();
+        MyRunnable8 runnable = new MyRunnable8();
+        runnable.setExchanger(exchanger);
         Thread thread = new Thread(runnable);
         thread.start();
-        barrier.await();
-
+        Result<Integer> res = exchanger.exchange(new Result<>());
 
         System.out.println("使用时间：" + (System.currentTimeMillis() - start) + " ms");
 
         // System.out.println(res.get());
-        Result res = runnable.getRes();
+        // Result res = runnable.getRes();
         // 确保  拿到result 并输出
         System.out.println("异步计算结果为：" + res.getRes());
         // System.out.println("异步计算结果为：" + res);
