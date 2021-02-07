@@ -1,6 +1,8 @@
 package com.liquid;
 
-import java.util.concurrent.Exchanger;
+import java.io.IOException;
+import java.io.PipedReader;
+import java.io.PipedWriter;
 
 /**
  * 测试类
@@ -121,20 +123,45 @@ public class Test {
         //         // barrier.await();
 
         //方法十四：Exchanger
-        Exchanger<Result<Integer>> exchanger = new Exchanger<>();
-        MyRunnable8 runnable = new MyRunnable8();
-        runnable.setExchanger(exchanger);
+        // Exchanger<Result<Integer>> exchanger = new Exchanger<>();
+        // MyRunnable8 runnable = new MyRunnable8();
+        // runnable.setExchanger(exchanger);
+        // Thread thread = new Thread(runnable);
+        // thread.start();
+        // Result<Integer> res = exchanger.exchange(new Result<>());
+
+        //方法十五：volatile
+        // MyRunnable9 runnable = new MyRunnable9();
+        // Thread thread = new Thread(runnable);
+        // thread.start();
+        // //相当于轮询
+        // while (runnable.getSignal().get() == 1) {
+        // }
+
+        //方法十六：pipe
+        PipedWriter writer = new PipedWriter();
+        PipedReader reader = new PipedReader();
+        MyRunnable10 runnable = new MyRunnable10(writer);
+        writer.connect(reader);
         Thread thread = new Thread(runnable);
         thread.start();
-        Result<Integer> res = exchanger.exchange(new Result<>());
+
+        char[] buf = new char[2048];
+        String res = "";
+        try {
+            int len = reader.read(buf);
+            res = new String(buf, 0, len);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
 
         System.out.println("使用时间：" + (System.currentTimeMillis() - start) + " ms");
-
         // System.out.println(res.get());
         // Result res = runnable.getRes();
         // 确保  拿到result 并输出
-        System.out.println("异步计算结果为：" + res.getRes());
-        // System.out.println("异步计算结果为：" + res);
+        // System.out.println("异步计算结果为：" + res.getRes());
+        System.out.println("异步计算结果为：" + res);
 
 
         // 然后退出main线程
