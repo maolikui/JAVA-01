@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                        http://www.springframework.org/schema/beans/spring-beans-3.2.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
+    <!--xml文件显示配置-->
+    <!--使用Bean标签申明student100-->
+    <bean id="student100"
+          class="com.liquid.entity.Student">
+        <property name="id" value="100"/>
+        <property name="name" value="KK100"/>
+    </bean>
+
+    <bean id="student123"
+          class="com.liquid.entity.Student">
+        <property name="id" value="124"/>
+        <property name="name" value="KK123"/>
+    </bean>
+
+    <bean id="class1" class="com.liquid.entity.Klass">
+        <property name="students">
+            <list>
+                <ref bean="student100"/>
+                <ref bean="student123"/>
+                <bean class="com.liquid.entity.Student">
+                    <property name="name" value="qq"/>
+                    <property name="id" value="001"/>
+                </bean>
+            </list>
+        </property>
+    </bean>
+    <!--    使用xml文件配置自动扫描-->
+    <!--    <context:component-scan base-package="com.liquid.annotation"/>-->
+</beans>
