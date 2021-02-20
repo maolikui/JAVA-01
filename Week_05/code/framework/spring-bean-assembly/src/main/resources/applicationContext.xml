@@ -17,6 +17,11 @@
         <property name="id" value="124"/>
         <property name="name" value="KK123"/>
     </bean>
+    <bean id="mobilePhone" class="com.liquid.entity.MobilePhoneFactory" factory-method="getMobilePhone">
+        <constructor-arg name="name" value="huawei"/>
+    </bean>
+    <bean id="mobilePhone2" class="com.liquid.entity.MobileFactoryBean">
+    </bean>
 
     <bean id="class1" class="com.liquid.entity.Klass">
         <property name="students">

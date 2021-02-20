@@ -25,7 +25,7 @@ public class Application {
 
         //封装DBUtil测试
         DemoService demoService = new DemoServiceImpl();
-        // demoService.updateBookNums(1004, 1011);
+        //demoService.updateBookNums(1004, 1011);
         for (int i = 0; i < 10; i++) {
             new Thread(() -> {
                 demoService.updateBookNums(1004, 10000);
