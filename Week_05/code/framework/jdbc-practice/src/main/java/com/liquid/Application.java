@@ -16,10 +16,21 @@ public class Application {
     public static void main(String[] args) {
         //使用JDBC原生接口，实现数据库的增删查改操作
         // testCURD();
+
         //使用事务和PreparedStatement
         // testTxAndPreparedstatement();
+
         //使用HikariCP
-        testHikariCP();
+        // testHikariCP();
+
+        //封装DBUtil测试
+        DemoService demoService = new DemoServiceImpl();
+        // demoService.updateBookNums(1004, 1011);
+        for (int i = 0; i < 10; i++) {
+            new Thread(() -> {
+                demoService.updateBookNums(1004, 10000);
+            }).start();
+        }
     }
 
     /**
@@ -122,7 +133,7 @@ public class Application {
         preparedStatement.setObject(2, "JDBC-Practice-4");
         preparedStatement.setObject(3, "10");
         preparedStatement.addBatch();
-
+        //批处理
         for (int i = 5; i < 100; i++) {
             preparedStatement.setObject(1, 1000 + i);
             preparedStatement.setObject(2, "JDBC-Practice-" + i);
