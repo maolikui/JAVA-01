@@ -1,5 +1,6 @@
 import com.liquid.annotation.CustomConfig;
 import com.liquid.annotation.ImportDemoConfig;
+import com.liquid.aopdefination.DemoComponent;
 import com.liquid.entity.*;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -77,5 +78,9 @@ public class Test {
         //在Import注解的配置类下显式配置
         Student student007 = (Student) annotationContext.getBean("student007");
         System.out.println(student007);
+
+        //=================5.使用AOP，BeanDefination动态注入================
+        DemoComponent demoComponent = (DemoComponent) annotationContext.getBean("demoComponent");
+        demoComponent.demo();
     }
 }
