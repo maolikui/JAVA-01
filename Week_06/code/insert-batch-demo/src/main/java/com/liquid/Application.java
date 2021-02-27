@@ -83,7 +83,7 @@ public class Application {
         String sql = "INSERT INTO oms_order (user_id,order_sn,order_status,consignee,mobile,address,product_price,freight_price) VALUES (?,?,?,?,?,?,?,?)";
         try {
             //连接数据库并获取连接
-            String url = "jdbc:mysql://localhost:3306/ssm";
+            String url = "jdbc:mysql://localhost:3306/liquidmall";
             connection = DriverManager.getConnection(url, "root", "root");
             //关闭自动提交事务
             connection.setAutoCommit(false);
@@ -108,6 +108,57 @@ public class Application {
                     preparedStatement.setObject(7, 1);
                     preparedStatement.addBatch();
                 }
+                preparedStatement.executeBatch();
+                //手动提交事务
+                connection.commit();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            //释放资源
+            try {
+                if (preparedStatement != null) {
+                    preparedStatement.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        long end = System.currentTimeMillis();
+        System.out.println("花费了 " + (end - begin) + " ms");
+    }
+
+    /**
+     * 使用事务和PreparedStatment编译预处理语句(拼接SQL语句)
+     *
+     * @throws SQLException
+     */
+    private static void testTxAndPreparedstatement2() {
+        long begin = System.currentTimeMillis();
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        SnowFlake snowFlake = new SnowFlake(1, 1);
+        String prefix = "INSERT INTO oms_order (user_id,order_sn,order_status,consignee,mobile,address,product_price,freight_price) VALUES ";
+        try {
+            //连接数据库并获取连接
+            String url = "jdbc:mysql://localhost:3306/liquidmall";
+            connection = DriverManager.getConnection(url, "root", "root");
+            //关闭自动提交事务
+            connection.setAutoCommit(false);
+            StringBuffer suffix = null;
+            //编译预处理，根据数据库连接对象获取SQL语句执行对象
+            //经过测试connection.prepareStatement()多次调用获取的PreparedStatement对象不一样
+            preparedStatement = connection.prepareStatement("");
+            for (int i = 0; i < 100; i++) {
+                suffix = new StringBuffer();
+                for (int j = 0; j < 10000; j++) {
+                    suffix.append("(1,1,1,1,1,1,1,1),");
+                }
+                String sql = prefix + suffix.substring(0, suffix.length() - 1);
+                preparedStatement.addBatch(sql);
                 preparedStatement.executeBatch();
                 //手动提交事务
                 connection.commit();
