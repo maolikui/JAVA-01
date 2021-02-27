@@ -1,79 +1,63 @@
 package com.liquid;
 
+import com.mysql.cj.log.Log;
+import com.mysql.cj.log.NullLogger;
+import com.sun.xml.internal.ws.api.message.HeaderList;
+
+import java.io.IOException;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * 测试类
+ * 测试中使用数据大小或者字符串的长度较小
  *
  * @author Liquid
  */
 public class Application {
-    public static void main(String[] args) {
-        //使用JDBC原生接口，实现数据库的增删查改操作
-        // testCURD();
+    public static void main(String[] args) throws Exception {
+        //===1.使用事务和PreparedStatement,addBatch()方法====
+        //经过测试消耗时间大于1min
+        //testTxAndPreparedstatement();
 
-        //使用事务和PreparedStatement
-        testTxAndPreparedstatement();
 
-        //使用HikariCP
-        // testHikariCP();
-    }
+        //===2.使用事务和PreparedStatement,使用SQL语句拼接======
+        //形如INSERT INTO oms_order (user_id,order_sn,order_status,consignee,mobile,address,product_price,freight_price) VALUES (...),(...)...;
+        //经过测试消耗时间在20s上下
+        //testTxAndPreparedstatement2();
 
-    /**
-     * JDBC原生接口实现数据库访问操作
-     *
-     * @throws SQLException
-     */
-    private static void testCURD() {
-        Connection connection = null;
-        Statement statement = null;
-        try {
-            //面向过程一步一步执行
-            //1.连接数据库并获取连接
-            String url = "jdbc:mysql://192.168.19.130:3306/ssm";
-            connection = DriverManager.getConnection(url, "root", "123456");
+        //===3.Load data方法===================================
+        //使用csv文件测试,经过测试消耗时间在17s上下
+        //生成csv文件
+        //try {
+        //    CreateCSVUtils.createCSVFile(new ArrayList<Object>(), null);
+        //} catch (IOException e) {
+        //    e.printStackTrace();
+        //}
+        //testLoadData();
 
-            //通过数据库连接对象获取到执行SQL语句的对象
-            statement = connection.createStatement();
 
-            //2.执行SQL语句(增删查改)
-            //insert
-            // int row = statement.executeUpdate("INSERT INTO book (book_id,name,number) values (1004,'JDBC-Practice',10)");
-            //delete
-            // int row = statement.executeUpdate("DELETE from book where book_id = 1004");
-            //query
-            ResultSet resultSet = statement.executeQuery("select * from book");
-            //3.处理结果集
-            while (resultSet.next()) {
-                int bookId = resultSet.getInt("book_id");
-                String name = resultSet.getString("name");
-                int number = resultSet.getInt("number");
-                System.out.println("bookId: " + bookId + ",name: " + name + ",number: " + number);
-            }
-
-            //update
-            // int row = statement.executeUpdate("UPDATE book SET number = 100 where book_id = 1004");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            //4.释放资源
-            try {
-                if (statement != null) {
-                    statement.close();
-                }
-                if (connection != null) {
-                    connection.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+        //===4.单表插入,使用多线程加上Hikari连接池方法=========
+        //经过调试在个人PC上设置20个线程,Hikari连接池最大连接数设置为20效果较好
+        //消耗时间在16s上下
+        long begin = System.currentTimeMillis();
+        CountDownLatch downLatch = new CountDownLatch(20);
+        for (int i = 0; i < 20; i++) {
+            new Thread(() -> {
+                testTxAndPreparedstatement3();
+                downLatch.countDown();
+            }).start();
         }
+        downLatch.await();
+        long end = System.currentTimeMillis();
+        System.out.println("花费了 " + (end - begin) + " ms");
+
+        //===5.将订单表存储引擎更换为MyISAM,使用方法2,3,4测试消耗时间小于10s,addBatch()方法操作比较慢==================
     }
 
     /**
-     * 使用事务和PreparedStatment编译预处理语句
-     *
-     * @throws SQLException
+     * 使用事务和PreparedStatment编译预处理语句(addBatch()方法)
      */
     private static void testTxAndPreparedstatement() {
         long begin = System.currentTimeMillis();
@@ -102,10 +86,12 @@ public class Application {
                     preparedStatement.setObject(4, "xiao" + (j + 1 + i * 10000));
                     //手机号
                     preparedStatement.setObject(5, (j + 1 + i * 10000));
+                    //地址
+                    preparedStatement.setObject(6, "shanghai");
                     //商品总额
-                    preparedStatement.setObject(6, 1);
-                    //运费
                     preparedStatement.setObject(7, 1);
+                    //运费
+                    preparedStatement.setObject(8, 1);
                     preparedStatement.addBatch();
                 }
                 preparedStatement.executeBatch();
@@ -133,8 +119,6 @@ public class Application {
 
     /**
      * 使用事务和PreparedStatment编译预处理语句(拼接SQL语句)
-     *
-     * @throws SQLException
      */
     private static void testTxAndPreparedstatement2() {
         long begin = System.currentTimeMillis();
@@ -142,6 +126,7 @@ public class Application {
         PreparedStatement preparedStatement = null;
         SnowFlake snowFlake = new SnowFlake(1, 1);
         String prefix = "INSERT INTO oms_order (user_id,order_sn,order_status,consignee,mobile,address,product_price,freight_price) VALUES ";
+        String sql = prefix + "(?,?,?,?,?,?,?,?)";
         try {
             //连接数据库并获取连接
             String url = "jdbc:mysql://localhost:3306/liquidmall";
@@ -151,14 +136,14 @@ public class Application {
             StringBuffer suffix = null;
             //编译预处理，根据数据库连接对象获取SQL语句执行对象
             //经过测试connection.prepareStatement()多次调用获取的PreparedStatement对象不一样
-            preparedStatement = connection.prepareStatement("");
-            for (int i = 0; i < 100; i++) {
+            preparedStatement = connection.prepareStatement(sql);
+            for (int i = 0; i < 10; i++) {
                 suffix = new StringBuffer();
-                for (int j = 0; j < 10000; j++) {
+                for (int j = 0; j < 100000; j++) {
                     suffix.append("(1,1,1,1,1,1,1,1),");
                 }
-                String sql = prefix + suffix.substring(0, suffix.length() - 1);
-                preparedStatement.addBatch(sql);
+                String sqlTemp = prefix + suffix.substring(0, suffix.length() - 1);
+                preparedStatement.addBatch(sqlTemp);
                 preparedStatement.executeBatch();
                 //手动提交事务
                 connection.commit();
@@ -180,5 +165,84 @@ public class Application {
         }
         long end = System.currentTimeMillis();
         System.out.println("花费了 " + (end - begin) + " ms");
+    }
+
+    /**
+     * Load Data方法
+     */
+    private static void testLoadData() {
+        long begin = System.currentTimeMillis();
+        Connection connection = null;
+        PreparedStatement statement = null;
+        try {
+            String url = "jdbc:mysql://localhost:3306/liquidmall";
+            connection = DriverManager.getConnection(url, "root", "root");
+            String sql = "LOAD DATA INFILE 'C:/Users/maolikui/Desktop/test/test.csv' INTO TABLE oms_order  " +
+                    "FIELDS TERMINATED BY ',' LINES TERMINATED BY '\r\n' ignore 1 lines (user_id,order_sn,order_status,consignee,mobile,address,product_price,freight_price)";
+            //通过数据库连接对象获取到执行SQL语句的对象
+            statement = connection.prepareStatement(sql);
+            statement.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (statement != null) {
+                    statement.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        long end = System.currentTimeMillis();
+        System.out.println("花费了 " + (end - begin) + " ms");
+    }
+
+    /**
+     * 使用多线程
+     */
+    private static void testTxAndPreparedstatement3() {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        SnowFlake snowFlake = new SnowFlake(1, 1);
+        String prefix = "INSERT INTO oms_order (user_id,order_sn,order_status,consignee,mobile,address,product_price,freight_price) VALUES ";
+        String sql = prefix + "(?,?,?,?,?,?,?,?)";
+        try {
+            //连接数据库并获取连接
+            String url = "jdbc:mysql://localhost:3306/liquidmall";
+            //connection = DriverManager.getConnection(url, "root", "root");
+            connection = DBUtil.getConnection();
+            //关闭自动提交事务
+            //connection.setAutoCommit(false);
+            //编译预处理，根据数据库连接对象获取SQL语句执行对象
+            //经过测试connection.prepareStatement()多次调用获取的PreparedStatement对象不一样
+            preparedStatement = connection.prepareStatement(sql);
+            StringBuffer suffix = new StringBuffer();
+            for (int j = 0; j < 50000; j++) {
+                suffix.append("(1,1,1,1,1,1,1,1),");
+            }
+            String sqlTemp = prefix + suffix.substring(0, suffix.length() - 1);
+            preparedStatement.addBatch(sqlTemp);
+            preparedStatement.executeBatch();
+            //手动提交事务
+            connection.commit();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            //释放资源
+            try {
+                if (preparedStatement != null) {
+                    preparedStatement.close();
+                }
+                if (connection != null) {
+                    DBUtil.closeConnection(connection);
+                    //connection.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

@@ -2,6 +2,7 @@ package com.liquid;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import sun.rmi.runtime.Log;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -13,10 +14,12 @@ import java.sql.SQLException;
  */
 public class DBUtil {
     private static final String DRIVER = "com.mysql.cj.jdbc.Driver";
-    private static final String URL = "jdbc:mysql://192.168.19.130:3306/ssm";
+    private static final String URL = "jdbc:mysql://localhost:3306/liquidmall";
     private static final String USER = "root";
-    private static final String PASSWORD = "123456";
+    private static final String PASSWORD = "root";
     private static final long CONN_TIMEOUT = 60 * 1000;
+    private static final long IDLE_TIMEOUT = 10 * 60 * 1000;
+    private static final int MAXIMUN_POOL_SIZE = 20;
 
     private static HikariDataSource dataSource;
 
@@ -29,8 +32,10 @@ public class DBUtil {
         hikariConfig.setUsername(USER);
         hikariConfig.setPassword(PASSWORD);
         hikariConfig.setConnectionTimeout(CONN_TIMEOUT);
-
-        //1.配置DataSource
+        hikariConfig.setMaximumPoolSize(MAXIMUN_POOL_SIZE);
+        hikariConfig.setIdleTimeout(IDLE_TIMEOUT);
+        //用于测试
+        hikariConfig.setAutoCommit(false);
         dataSource = new HikariDataSource(hikariConfig);
     }
 

@@ -20,7 +20,7 @@ public class DemoServiceImpl implements DemoService {
         Connection connection = DBUtil.getConnection();
         System.out.println("Thread name: " + Thread.currentThread().getName() + ",获取Connection: " + connection);
         try {
-            connection.setAutoCommit(false);
+            //connection.setAutoCommit(false);
             updateBook(connection, UPDATE_BOOK_SQL, bookId, number);
             insertLog(connection, INSERT_LOG_SQL, "Update book number.");
             connection.commit();
