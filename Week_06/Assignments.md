@@ -4,11 +4,11 @@
 
 参考电商开源项目定制裁剪设计。
 
-答案链接源码(https://github.com/maolikui/JAVA-01/tree/main/Week_05/code/framework/spring-bean-assembly)
+答案链接(https://github.com/maolikui/JAVA-01/tree/main/Week_06/sql)
 
 # 第十三次课(20210224)
 
 ## （必做）按自己设计的表结构，插入100万订单模拟数据，测试不同方式的插入效率。
 
-
+答案代码链接(https://github.com/maolikui/JAVA-01/tree/main/Week_06/code/insert-batch-demo)
 
