@@ -54,6 +54,7 @@ public class Application {
         System.out.println("花费了 " + (end - begin) + " ms");
 
         //===5.将订单表存储引擎更换为MyISAM,使用方法2,3,4测试消耗时间小于10s,addBatch()方法操作比较慢==================
+        
     }
 
     /**
@@ -175,7 +176,7 @@ public class Application {
         Connection connection = null;
         PreparedStatement statement = null;
         try {
-            String url = "jdbc:mysql://localhost:3306/liquidmall";
+            String url = "jdbc:mysql://localhost:3306/liquidmall?rewriteBatchedStatements=true";
             connection = DriverManager.getConnection(url, "root", "root");
             String sql = "LOAD DATA INFILE 'C:/Users/maolikui/Desktop/test/test.csv' INTO TABLE oms_order  " +
                     "FIELDS TERMINATED BY ',' LINES TERMINATED BY '\r\n' ignore 1 lines (user_id,order_sn,order_status,consignee,mobile,address,product_price,freight_price)";
