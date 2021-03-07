@@ -1,7 +1,6 @@
 package com.liquid.rwseparate.dynamic;
 
-import java.lang.reflect.Method;
-
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -10,7 +9,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
+import java.lang.reflect.Method;
 
 /**
  * AOP切面,拦截ReadOnly注解的方法执行
@@ -28,11 +27,13 @@ public class DataSourceContextAop {
         boolean clear = true;
         try {
             Method method = this.getMethod(pjp);
+            String route = "";
             if (method.isAnnotationPresent(ReadOnly.class)) {
-                DynamicDataSourceContext.set(DynamicDataSourceEnum.SECONDARY.getDataSourceName());
+                route = DynamicDataSourceContext.routerChoosed.route(DynamicDataSourceContext.secondaryDsIds);
             } else {
-                DynamicDataSourceContext.set(DynamicDataSourceEnum.PRIMARY.getDataSourceName());
+                route = DynamicDataSourceContext.routerChoosed.route(DynamicDataSourceContext.primaryDsIds);
             }
+            DynamicDataSourceContext.set(route);
             log.info("========数据源切换至：{}", DynamicDataSourceContext.get());
             return pjp.proceed();
         } finally {

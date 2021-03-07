@@ -1,173 +1,123 @@
-//package com.liquid.rwseparate.config;
-//
-//import com.liquid.rwseparate.dynamic.DynamicDataSource;
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
-//import org.springframework.beans.MutablePropertyValues;
-//import org.springframework.beans.PropertyValues;
-//import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-//import org.springframework.beans.factory.support.GenericBeanDefinition;
-//import org.springframework.boot.context.properties.bind.BindResult;
-//import org.springframework.boot.context.properties.bind.Binder;
-//import org.springframework.boot.context.properties.source.ConfigurationPropertySources;
-//import org.springframework.boot.jdbc.DataSourceBuilder;
-//import org.springframework.context.EnvironmentAware;
-//import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
-//import org.springframework.core.convert.ConversionService;
-//import org.springframework.core.convert.support.DefaultConversionService;
-//import org.springframework.core.env.Environment;
-//import org.springframework.core.env.PropertyResolver;
-//import org.springframework.core.type.AnnotationMetadata;
-//
-//import javax.sql.DataSource;
-//import java.util.HashMap;
-//import java.util.Map;
-//import java.util.Properties;
-//
-///**
-// * 动态数据源注册
-// *
-// * @author Liquid
-// */
-//public class DynamicDataSourceRegister
-//        implements ImportBeanDefinitionRegistrar, EnvironmentAware {
-//
-//    private static final Logger logger = LoggerFactory.getLogger(DynamicDataSourceRegister.class);
-//
-//    private ConversionService conversionService = new DefaultConversionService();
-//    private PropertyValues dataSourcePropertyValues;
-//    // 如配置文件中未指定数据源类型，使用该默认值
-//    private static final Object DATASOURCE_TYPE_DEFAULT = "org.apache.tomcat.jdbc.pool.DataSource";
-//
-//    // 数据源
-//    private DataSource defaultDataSource;
-//    private Map<String, DataSource> customDataSources = new HashMap<>();
-//
-//    @Override
-//    public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-//        Map<Object, Object> targetDataSources = new HashMap<Object, Object>();
-//        // 将主数据源添加到更多数据源中
-//        targetDataSources.put("dataSource", defaultDataSource);
-//        DynamicDataSourceContextHolder.dataSourceIds.add("dataSource");
-//        // 添加更多数据源
-//        targetDataSources.putAll(customDataSources);
-//        for (String key : customDataSources.keySet()) {
-//            DynamicDataSourceContextHolder.dataSourceIds.add(key);
-//        }
-//
-//        // 创建DynamicDataSource
-//        GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
-//        beanDefinition.setBeanClass(DynamicDataSource.class);
-//        beanDefinition.setSynthetic(true);
-//        MutablePropertyValues mpv = beanDefinition.getPropertyValues();
-//        mpv.addPropertyValue("defaultTargetDataSource", defaultDataSource);
-//        mpv.addPropertyValue("targetDataSources", targetDataSources);
-//        registry.registerBeanDefinition("dataSource", beanDefinition);
-//
-//        logger.info("Dynamic DataSource Registry");
-//    }
-//
-//    /**
-//     * 创建DataSource
-//     */
-//    @SuppressWarnings("unchecked")
-//    public DataSource buildDataSource(Map<String, Object> dsMap) {
-//        try {
-//            Object type = dsMap.get("type");
-//            if (type == null)
-//                type = DATASOURCE_TYPE_DEFAULT;// 默认DataSource
-//
-//            Class<? extends DataSource> dataSourceType;
-//            dataSourceType = (Class<? extends DataSource>) Class.forName((String) type);
-//
-//            String driverClassName = dsMap.get("driver-class-name").toString();
-//            String url = dsMap.get("url").toString();
-//            String username = dsMap.get("username").toString();
-//            String password = dsMap.get("password").toString();
-//
-//            DataSourceBuilder factory = DataSourceBuilder.create().driverClassName(driverClassName).url(url)
-//                    .username(username).password(password).type(dataSourceType);
-//            return factory.build();
-//        } catch (ClassNotFoundException e) {
-//            e.printStackTrace();
-//        }
-//        return null;
-//    }
-//
-//    /**
-//     * 加载多数据源配置
-//     */
-//    @Override
-//    public void setEnvironment(Environment env) {
-//        initDefaultDataSource(env);
-//        initCustomDataSources(env);
-//    }
-//
-//    /**
-//     * 初始化主数据源
-//     */
-//    private void initDefaultDataSource(Environment env) {
-//        // 读取主数据源
-//        Iterable sources = ConfigurationPropertySources.get(env);
-//        Binder binder = new Binder(sources);
-//        BindResult bindResult = binder.bind("spring.datasource", Properties.class);
-//        Properties properties = (Properties) bindResult.get();
-//
-//
-//        Map<String, Object> dsMap = new HashMap<>();
-//        dsMap.put("type", properties.getProperty("type"));
-//        dsMap.put("driver-class-name", propertyResolver.getProperty("driver-class-name"));
-//        dsMap.put("url", propertyResolver.getProperty("url"));
-//        dsMap.put("username", propertyResolver.getProperty("username"));
-//        dsMap.put("password", propertyResolver.getProperty("password"));
-//
-//        defaultDataSource = buildDataSource(dsMap);
-//
-//        dataBinder(defaultDataSource, env);
-//    }
-//
-//    /**
-//     * 为DataSource绑定更多数据
-//     *
-//     * @param dataSource
-//     * @param env
-//     */
-//    private void dataBinder(DataSource dataSource, Environment env) {
-//        RelaxedDataBinder dataBinder = new RelaxedDataBinder(dataSource);
-//        Binder binder = Binder.get(env);
-//        binder.bind()
-//        //dataBinder.setValidator(new LocalValidatorFactory().run(this.applicationContext));
-//        dataBinder.setConversionService(conversionService);
-//        dataBinder.setIgnoreNestedProperties(false);//false
-//        dataBinder.setIgnoreInvalidFields(false);//false
-//        dataBinder.setIgnoreUnknownFields(true);//true
-//        if (dataSourcePropertyValues == null) {
-//            Map<String, Object> rpr = new RelaxedPropertyResolver(env, "spring.datasource").getSubProperties(".");
-//            Map<String, Object> values = new HashMap<>(rpr);
-//            // 排除已经设置的属性
-//            values.remove("type");
-//            values.remove("driver-class-name");
-//            values.remove("url");
-//            values.remove("username");
-//            values.remove("password");
-//            dataSourcePropertyValues = new MutablePropertyValues(values);
-//        }
-//        dataBinder.bind(dataSourcePropertyValues);
-//    }
-//
-//    /**
-//     * 初始化更多数据源
-//     */
-//    private void initCustomDataSources(Environment env) {
-//        // 读取配置文件获取更多数据源，也可以通过defaultDataSource读取数据库获取更多数据源
-//        RelaxedPropertyResolver propertyResolver = new RelaxedPropertyResolver(env, "custom.datasource.");
-//        String dsPrefixs = propertyResolver.getProperty("names");
-//        for (String dsPrefix : dsPrefixs.split(",")) {// 多个数据源
-//            Map<String, Object> dsMap = propertyResolver.getSubProperties(dsPrefix + ".");
-//            DataSource ds = buildDataSource(dsMap);
-//            customDataSources.put(dsPrefix, ds);
-//            dataBinder(ds, env);
-//        }
-//    }
-//
-//}
+package com.liquid.rwseparate.config;
+
+import cn.hutool.core.util.StrUtil;
+import com.liquid.rwseparate.dynamic.DynamicDataSource;
+import com.liquid.rwseparate.dynamic.DynamicDataSourceContext;
+import org.springframework.beans.MutablePropertyValues;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.GenericBeanDefinition;
+import org.springframework.boot.context.properties.bind.BindResult;
+import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.boot.context.properties.source.ConfigurationPropertySources;
+import org.springframework.boot.jdbc.DataSourceBuilder;
+import org.springframework.context.EnvironmentAware;
+import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
+import org.springframework.core.env.Environment;
+import org.springframework.core.type.AnnotationMetadata;
+
+import javax.sql.DataSource;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
+/**
+ * 动态数据源注册
+ *
+ * @author Liquid
+ */
+public class DynamicDataSourceRegister
+        implements ImportBeanDefinitionRegistrar, EnvironmentAware {
+
+    // 如配置文件中未指定数据源类型，使用该默认值
+    private static final Object DATASOURCE_TYPE_DEFAULT = "org.apache.tomcat.jdbc.pool.DataSource";
+
+    // 数据源
+    private Map<String, DataSource> primaryDataSources = new HashMap<>();
+    private Map<String, DataSource> secondaryDataSources = new HashMap<>();
+
+    @Override
+    public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+        Map<Object, Object> targetDataSources = new HashMap<Object, Object>();
+        targetDataSources.putAll(primaryDataSources);
+        for (String key : primaryDataSources.keySet()) {
+            DynamicDataSourceContext.primaryDsIds.add(key);
+        }
+
+        targetDataSources.putAll(secondaryDataSources);
+        for (String key : secondaryDataSources.keySet()) {
+            DynamicDataSourceContext.secondaryDsIds.add(key);
+        }
+        // 创建DynamicDataSource
+        GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
+        beanDefinition.setBeanClass(DynamicDataSource.class);
+        beanDefinition.setSynthetic(true);
+        MutablePropertyValues mpv = beanDefinition.getPropertyValues();
+        mpv.addPropertyValue("defaultTargetDataSource", primaryDataSources.get(DynamicDataSourceContext.primaryDsIds.get(0)));
+        mpv.addPropertyValue("targetDataSources", targetDataSources);
+        registry.registerBeanDefinition("dynamicDbReg", beanDefinition);
+    }
+
+
+    /**
+     * 加载多数据源配置
+     */
+    @Override
+    public void setEnvironment(Environment env) {
+        initDataSource(env);
+    }
+
+    /**
+     * 初始化主数据源
+     */
+    private void initDataSource(Environment env) {
+        // 读取主数据源
+        Iterable sources = ConfigurationPropertySources.get(env);
+        Binder binder = new Binder(sources);
+        BindResult bindResult = binder.bind("spring.custom.datasource", Properties.class);
+        Properties properties = (Properties) bindResult.get();
+
+        String dsNames = properties.getProperty("names");
+        for (String dsName : dsNames.split(",")) {
+            Map<String, Object> dsMap = new HashMap<>();
+            dsMap.put("driver-class-name", properties.getProperty(dsName + ".driver-class-name"));
+            dsMap.put("url", properties.getProperty(dsName + ".jdbc-url"));
+            dsMap.put("username", properties.getProperty(dsName + ".username"));
+            dsMap.put("password", properties.getProperty(dsName + ".password"));
+            dsMap.put("type", properties.getProperty(dsName + ".type"));
+            DataSource ds = buildDataSource(dsMap);
+            if (StrUtil.contains(dsName, "primary")) {
+                primaryDataSources.put(dsName, ds);
+            } else {
+                secondaryDataSources.put(dsName, ds);
+            }
+        }
+        DynamicDataSourceContext.chooseRouter(properties.getProperty("load-balancer-name"));
+    }
+
+    /**
+     * 创建DataSource
+     */
+    @SuppressWarnings("unchecked")
+    public DataSource buildDataSource(Map<String, Object> dsMap) {
+        try {
+            Object type = dsMap.get("type");
+            if (type == null)
+                type = DATASOURCE_TYPE_DEFAULT;// 默认DataSource
+
+            Class<? extends DataSource> dataSourceType;
+            dataSourceType = (Class<? extends DataSource>) Class.forName((String) type);
+
+            String driverClassName = dsMap.get("driver-class-name").toString();
+            String url = dsMap.get("url").toString();
+            String username = dsMap.get("username").toString();
+            String password = dsMap.get("password").toString();
+
+            DataSourceBuilder factory = DataSourceBuilder.create().driverClassName(driverClassName).url(url)
+                    .username(username).password(password).type(dataSourceType);
+            return factory.build();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+}
