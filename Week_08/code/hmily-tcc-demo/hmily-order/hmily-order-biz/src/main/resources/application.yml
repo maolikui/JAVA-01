@@ -1,0 +1,51 @@
+server:
+  port: 8089
+  servlet:
+    context-path: /order-service
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: @artifactId@
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_HOST:hmily-register}:${NACOS_PORT:8848}
+  #      config:
+  #        server-addr: ${spring.cloud.nacos.discovery.server-addr}
+  #        file-extension: yml
+  #        shared-configs:
+  #          - application-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.0.130:3306/liquid_order?useUnicode=true&characterEncoding=utf8
+    username: root
+    password: 123456
+    type: com.zaxxer.hikari.HikariDataSource
+  profiles:
+    active: @profiles.active@
+# feign 配置
+feign:
+  hystrix:
+    enabled: false
+  sentinel:
+    enabled: false
+  okhttp:
+    enabled: true
+  httpclient:
+    enabled: false
+  client:
+    config:
+      default:
+        connectTimeout: 10000
+        readTimeout: 10000
+  compression:
+    request:
+      enabled: true
+    response:
+      enabled: true
+
+#请求处理的超时时间
+ribbon:
+  ReadTimeout: 10000
+  ConnectTimeout: 10000
