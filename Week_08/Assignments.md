@@ -94,11 +94,11 @@
            database_inline:
              type: INLINE
              props:
-               algorithm-expression: ds_${user_id % 2}
+               algorithm-expression: ds_${((user_id % 32) / 16) as int}
            oms_order_inline:
              type: INLINE
              props:
-               algorithm-expression: oms_order_${user_id % 16}
+               algorithm-expression: oms_order_${(user_id % 32) % 16}
      
          keyGenerators:
            snowflake:
