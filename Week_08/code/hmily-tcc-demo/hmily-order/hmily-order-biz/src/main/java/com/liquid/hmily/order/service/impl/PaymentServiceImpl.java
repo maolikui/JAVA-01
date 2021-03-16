@@ -75,6 +75,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     private void updateOrderStatus(OmsOrder order, OrderStatusEnum orderStatus) {
+
         order.setOrderStatus(orderStatus.getCode());
         orderMapper.update(order);
     }

@@ -2,7 +2,6 @@ package com.liquid;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import sun.rmi.runtime.Log;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -14,7 +13,7 @@ import java.sql.SQLException;
  */
 public class DBUtil {
     private static final String DRIVER = "com.mysql.cj.jdbc.Driver";
-    private static final String URL = "jdbc:mysql://localhost:3306/liquidmall?rewriteBatchedStatements=true";
+    private static final String URL = "jdbc:mysql://localhost:3307/sharding_oms_order?rewriteBatchedStatements=true";
     private static final String USER = "root";
     private static final String PASSWORD = "root";
     private static final long CONN_TIMEOUT = 60 * 1000;

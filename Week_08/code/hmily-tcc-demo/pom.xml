@@ -17,6 +17,7 @@
     <name>hmily-tcc-demo</name>
 
     <properties>
+        <hmily-tcc-demo.version>1.0-SNAPSHOT</hmily-tcc-demo.version>
         <spring-boot.version>2.4.3</spring-boot.version>
         <spring-cloud.version>2020.0.1</spring-cloud.version>
         <spring-cloud-alibaba.version>2.2.5.RELEASE</spring-cloud-alibaba.version>
@@ -26,30 +27,26 @@
         <hutool.version>5.5.8</hutool.version>
         <mybatis-plus.version>3.4.2</mybatis-plus.version>
         <swagger.fox.version>3.0.0</swagger.fox.version>
+        <hmily.version>2.1.1</hmily.version>
     </properties>
 
     <dependencies>
         <!--bootstrap 启动器-->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-bootstrap</artifactId>
-        </dependency>
+        <!--        <dependency>-->
+        <!--            <groupId>org.springframework.cloud</groupId>-->
+        <!--            <artifactId>spring-cloud-starter-bootstrap</artifactId>-->
+        <!--        </dependency>-->
         <!--配置文件处理器-->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-configuration-processor</artifactId>
-            <optional>true</optional>
-        </dependency>
+        <!--        <dependency>-->
+        <!--            <groupId>org.springframework.boot</groupId>-->
+        <!--            <artifactId>spring-boot-configuration-processor</artifactId>-->
+        <!--            <optional>true</optional>-->
+        <!--        </dependency>-->
         <!--Lombok-->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.dromara</groupId>
-            <artifactId>hmily-springcloud</artifactId>
-            <version>2.1.1</version>
         </dependency>
     </dependencies>
     <dependencyManagement>
@@ -77,6 +74,60 @@
                 <version>${spring-cloud-alibaba.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <!--核心依赖模块-->
+            <dependency>
+                <groupId>com.liquid</groupId>
+                <artifactId>hmily-common-core</artifactId>
+                <version>${hmily-tcc-demo.version}</version>
+            </dependency>
+            <!--feign依赖模块-->
+            <dependency>
+                <groupId>com.liquid</groupId>
+                <artifactId>hmily-common-feign</artifactId>
+                <version>${hmily-tcc-demo.version}</version>
+            </dependency>
+            <!--mybatis模块 -->
+            <dependency>
+                <groupId>com.liquid</groupId>
+                <artifactId>hmily-common-mybatis</artifactId>
+                <version>${hmily-tcc-demo.version}</version>
+            </dependency>
+            <!--接口模块-->
+            <dependency>
+                <groupId>com.liquid</groupId>
+                <artifactId>hmily-common-swagger</artifactId>
+                <version>${hmily-tcc-demo.version}</version>
+            </dependency>
+            <!--库存接口-->
+            <dependency>
+                <groupId>com.liquid</groupId>
+                <artifactId>hmily-inventory-api</artifactId>
+                <version>${hmily-tcc-demo.version}</version>
+            </dependency>
+            <!--账户接口-->
+            <dependency>
+                <groupId>com.liquid</groupId>
+                <artifactId>hmily-account-api</artifactId>
+                <version>${hmily-tcc-demo.version}</version>
+            </dependency>
+            <!--订单接口-->
+            <dependency>
+                <groupId>com.liquid</groupId>
+                <artifactId>hmily-order-api</artifactId>
+                <version>${hmily-tcc-demo.version}</version>
+            </dependency>
+            <!-- hmily 依赖 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>hmily-spring-boot-starter-springcloud</artifactId>
+                <version>${hmily.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-log4j12</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
         </dependencies>
     </dependencyManagement>

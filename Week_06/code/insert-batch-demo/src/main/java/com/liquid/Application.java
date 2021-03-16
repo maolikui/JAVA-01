@@ -1,12 +1,9 @@
 package com.liquid;
 
-import com.mysql.cj.log.Log;
-import com.mysql.cj.log.NullLogger;
-import com.sun.xml.internal.ws.api.message.HeaderList;
-
-import java.io.IOException;
-import java.sql.*;
-import java.util.ArrayList;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -44,8 +41,9 @@ public class Application {
         long begin = System.currentTimeMillis();
         CountDownLatch downLatch = new CountDownLatch(20);
         for (int i = 0; i < 20; i++) {
+            final int segment = i;
             new Thread(() -> {
-                testTxAndPreparedstatement3();
+                testTxAndPreparedstatement3(segment);
                 downLatch.countDown();
             }).start();
         }
@@ -203,15 +201,15 @@ public class Application {
     /**
      * 使用多线程
      */
-    private static void testTxAndPreparedstatement3() {
+    private static void testTxAndPreparedstatement3(int segment) {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         SnowFlake snowFlake = new SnowFlake(1, 1);
-        String prefix = "INSERT INTO oms_order (user_id,order_sn,order_status,consignee,mobile,address,product_price,freight_price) VALUES ";
+        String prefix = "INSERT INTO oms_order (user_id,order_sn,order_status,consignee,mobile,address,goods_price,freight_price) VALUES ";
         String sql = prefix + "(?,?,?,?,?,?,?,?)";
         try {
             //连接数据库并获取连接
-            String url = "jdbc:mysql://localhost:3306/liquidmall?rewriteBatchedStatements=true";
+            // String url = "jdbc:mysql://localhost:3306/liquidmall?rewriteBatchedStatements=true";
             //connection = DriverManager.getConnection(url, "root", "root");
             connection = DBUtil.getConnection();
             //关闭自动提交事务
@@ -221,7 +219,9 @@ public class Application {
             preparedStatement = connection.prepareStatement(sql);
             StringBuffer suffix = new StringBuffer();
             for (int j = 0; j < 50000; j++) {
-                suffix.append("(1,1,1,1,1,1,1,1),");
+                suffix.append("(" + (segment * 50000 + j + 1) + "," +
+                        snowFlake.nextId() + "," +
+                        "1,1,1,1,1,1),");
             }
             String sqlTemp = prefix + suffix.substring(0, suffix.length() - 1);
             preparedStatement.addBatch(sqlTemp);

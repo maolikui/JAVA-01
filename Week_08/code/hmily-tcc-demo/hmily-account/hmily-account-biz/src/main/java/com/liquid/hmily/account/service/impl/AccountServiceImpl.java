@@ -5,8 +5,8 @@ import com.liquid.hmily.account.api.entity.Account;
 import com.liquid.hmily.account.mapper.AccountMapper;
 import com.liquid.hmily.account.service.AccountService;
 import com.liquid.hmily.inventory.api.feign.RemoteInventoryService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,11 +16,8 @@ import org.springframework.stereotype.Service;
  * @author Liquid
  */
 @Service("accountService")
+@Slf4j
 public class AccountServiceImpl implements AccountService {
-    /**
-     * logger.
-     */
-    private static final Logger LOGGER = LoggerFactory.getLogger(AccountServiceImpl.class);
 
     private final AccountMapper accountMapper;
 
@@ -38,12 +35,35 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    @HmilyTCC(confirmMethod = "confirm", cancelMethod = "cancel")
     public boolean payment(final AccountDTO accountDTO) {
-        LOGGER.info("============执行try付款接口===============");
+        log.info("============执行try付款接口===============");
         accountMapper.update(accountDTO);
         return Boolean.TRUE;
     }
 
+    /**
+     * Confirm boolean.
+     *
+     * @param accountDTO the account dto
+     * @return the boolean
+     */
+    public boolean confirm(final AccountDTO accountDTO) {
+        log.info("============执行confirm 付款接口===============");
+        return accountMapper.confirm(accountDTO) > 0;
+    }
+
+
+    /**
+     * Cancel boolean.
+     *
+     * @param accountDTO the account dto
+     * @return the boolean
+     */
+    public boolean cancel(final AccountDTO accountDTO) {
+        log.info("============执行cancel 付款接口===============");
+        return accountMapper.cancel(accountDTO) > 0;
+    }
 
     @Override
     public Account findByUserId(final String userId) {

@@ -26,4 +26,14 @@ public interface InventoryMapper extends BaseMapper<PmsProductSku> {
             " lock_stock= lock_stock + #{count} " +
             " where product_id =#{productId} and stock > 0  ")
     int decrease(PmsProductSkuDTO pmsProductSkuDTO);
+
+    @Update("update pms_product_sku set " +
+            " lock_stock = lock_stock - #{count} " +
+            " where product_id =#{productId} and stock > 0 ")
+    int confirm(PmsProductSkuDTO pmsProductSkuDTO);
+
+    @Update("update pms_product_sku set stock = stock + #{count}," +
+            " lock_stock= lock_stock - #{count} " +
+            " where product_id =#{productId}  and lock_stock > 0 ")
+    int cancel(PmsProductSkuDTO pmsProductSkuDTO);
 }

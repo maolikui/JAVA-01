@@ -1,20 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.liquid.hmily.inventory.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -22,20 +5,20 @@ import com.liquid.hmily.inventory.api.dto.PmsProductSkuDTO;
 import com.liquid.hmily.inventory.api.entity.PmsProductSku;
 import com.liquid.hmily.inventory.mapper.InventoryMapper;
 import com.liquid.hmily.inventory.service.InventoryService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.dromara.hmily.annotation.HmilyTCC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
  * InventoryServiceImpl.
  *
- * @author xiaoyu
+ * @author Liquid
  */
 @Service("inventoryService")
+@Slf4j
 public class InventoryServiceImpl implements InventoryService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(InventoryServiceImpl.class);
 
     private final InventoryMapper inventoryMapper;
 
@@ -51,8 +34,9 @@ public class InventoryServiceImpl implements InventoryService {
      * @return true
      */
     @Override
+    @HmilyTCC(confirmMethod = "confirmMethod", cancelMethod = "cancelMethod")
     public Boolean decrease(PmsProductSkuDTO pmsProductSkuDTO) {
-        LOGGER.info("==========try扣减库存decrease===========");
+        log.info("==========try扣减库存decrease===========");
         inventoryMapper.decrease(pmsProductSkuDTO);
         return true;
     }
@@ -71,4 +55,13 @@ public class InventoryServiceImpl implements InventoryService {
         return inventoryMapper.selectOne(wrapper);
     }
 
+    public Boolean confirmMethod(PmsProductSkuDTO pmsProductSkuDTO) {
+        log.info("==========confirmMethod库存确认方法===========");
+        return inventoryMapper.confirm(pmsProductSkuDTO) > 0;
+    }
+
+    public Boolean cancelMethod(PmsProductSkuDTO pmsProductSkuDTO) {
+        log.info("==========cancelMethod库存取消方法===========");
+        return inventoryMapper.cancel(pmsProductSkuDTO) > 0;
+    }
 }

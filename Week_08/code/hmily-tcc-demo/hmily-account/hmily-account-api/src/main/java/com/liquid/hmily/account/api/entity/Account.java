@@ -12,14 +12,9 @@ import java.util.Date;
 @Data
 public class Account {
     private Long id;
-
     private String userId;
-
     private Long balance;
-
     private Long freezeAmount;
-
     private Date createTime;
-
     private Date updateTime;
 }

@@ -19,6 +19,16 @@ public interface AccountMapper extends BaseMapper<Account> {
             " where user_id =#{userId}  and  balance > 0  ")
     int update(AccountDTO accountDTO);
 
+    @Update("update account set " +
+            " freeze_amount= freeze_amount - #{amount}" +
+            " where user_id =#{userId}  and freeze_amount >0 ")
+    int confirm(AccountDTO accountDTO);
+
+    @Update("update account set balance = balance + #{amount}," +
+            " freeze_amount= freeze_amount -  #{amount} " +
+            " where user_id =#{userId}  and freeze_amount >0")
+    int cancel(AccountDTO accountDTO);
+
     @Select("select id,user_id,balance, freeze_amount from account where user_id =#{userId} limit 1")
     Account findByUserId(String userId);
 }

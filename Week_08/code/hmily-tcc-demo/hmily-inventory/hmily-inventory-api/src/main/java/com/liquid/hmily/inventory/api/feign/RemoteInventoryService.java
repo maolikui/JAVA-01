@@ -1,6 +1,6 @@
 package com.liquid.hmily.inventory.api.feign;
 
-import com.liquid.hmily.inventory.api.constant.InventoryServiceInfo;
+import com.liquid.hmily.constant.ServiceNameConstants;
 import com.liquid.hmily.inventory.api.dto.PmsProductSkuDTO;
 import org.dromara.hmily.annotation.Hmily;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
  *
  * @author Liquid
  */
-@FeignClient(value = InventoryServiceInfo.INVENTORY_SERVICE)
+@FeignClient(value = ServiceNameConstants.INVENTORY_SERVICE)
 public interface RemoteInventoryService {
 
     /**
