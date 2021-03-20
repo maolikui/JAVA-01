@@ -1,0 +1,15 @@
+server:
+  port: 8087
+
+spring:
+  application:
+    name: trading-service
+
+dubbo:
+  scan:
+    base-packages: com.liquid.trading
+  registry:
+    address: zookeeper://ip:2181
+  metadata-report:
+    address: zookeeper://ip:2181
+
