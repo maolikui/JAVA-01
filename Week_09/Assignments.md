@@ -28,4 +28,4 @@
 
 设计本次交易不依赖于交易平台，即不使用交易平台周转。用户A和用户B使用不同的业务服务交易，以便使用dubbo框架进行远程调用。此外每个用户由可用余额和冻结余额组成账户余额。
 
-答案代码链接(https://github.com/maolikui/JAVA-01/tree/main/Week_09/code/code/trading-sys-demo)
+答案代码链接(https://github.com/maolikui/JAVA-01/tree/main/Week_09/code/trading-sys-demo)
