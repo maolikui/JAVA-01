@@ -1,7 +1,7 @@
 package io.kimmking.rpcfx.config;
 
-import io.kimmking.rpcfx.DefaultResolver;
-import io.kimmking.rpcfx.ZooKeeperServiceRegistry;
+import io.kimmking.rpcfx.registry.ZooKeeperServiceAgent;
+import io.kimmking.rpcfx.server.DefaultResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -16,21 +16,19 @@ import java.net.InetAddress;
  * @author Liquid
  */
 @Configuration
-@EnableConfigurationProperties({ZookeeperProperties.class, RpcfxProperties.class})
+@EnableConfigurationProperties({RpcfxProperties.class})
 public class RpcfxServiceAutoConfiguration {
-    @Autowired
-    private ZookeeperProperties zookeeperProperties;
     @Autowired
     private RpcfxProperties rpcfxProperties;
 
 
     @Bean
-    public ZooKeeperServiceRegistry zooKeeperServiceRegistry() {
-        return new ZooKeeperServiceRegistry(zookeeperProperties.getAddress());
+    public ZooKeeperServiceAgent zooKeeperServiceAgent() {
+        return new ZooKeeperServiceAgent(rpcfxProperties.getZkAddress());
     }
 
     @Bean
-    public DefaultResolver defaultResolver(@Qualifier("zooKeeperServiceRegistry") ZooKeeperServiceRegistry zooKeeperServiceRegistry) throws Exception {
-        return new DefaultResolver(InetAddress.getLocalHost().getHostAddress() + ":" + rpcfxProperties.getPort(), zooKeeperServiceRegistry);
+    public DefaultResolver defaultResolver(@Qualifier("zooKeeperServiceAgent") ZooKeeperServiceAgent zooKeeperServiceAgent) throws Exception {
+        return new DefaultResolver(InetAddress.getLocalHost().getHostAddress() + ":" + rpcfxProperties.getPort(), zooKeeperServiceAgent);
     }
 }

@@ -8,6 +8,10 @@
 
 基于rpcfx改造，自定义spring boot starter方式集成框架。
 
+类似MyBatis扫描Mapper接口文件，增加客户端扫描服务接口，自动注册到Spring容器中，
+
+采用Netty TCP传输，并添加Kryo序列化。
+
 答案代码链接(https://github.com/maolikui/JAVA-01/tree/main/Week_09/code/rpcfx)
 
 # 第十八次课(20210314)

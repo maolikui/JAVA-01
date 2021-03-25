@@ -38,8 +38,9 @@ public class RpcfxServerHandler extends SimpleChannelInboundHandler<RpcfxRequest
     }
 
     private Object handle(RpcfxRequest request) throws Exception {
-        // 获取服务对象
+        // 从请求体中获取要调用的服务名称
         String serviceName = request.getServiceClass();
+        //从缓存的服务Map中获取服务实例
         Object serviceBean = handlerMap.get(serviceName);
         if (serviceBean == null) {
             throw new RuntimeException(String.format("can not find service bean by key: %s", serviceName));
@@ -49,7 +50,8 @@ public class RpcfxServerHandler extends SimpleChannelInboundHandler<RpcfxRequest
         String methodName = request.getMethod();
         Class<?>[] parameterTypes = request.getParameterTypes();
         Object[] parameters = request.getParams();
-        // 使用 CGLib 执行反射调用
+        //此处可以直接反射调用
+        //也可以使用 CGLib 执行反射调用
         FastClass serviceFastClass = FastClass.create(serviceClass);
         FastMethod serviceFastMethod = serviceFastClass.getMethod(methodName, parameterTypes);
         return serviceFastMethod.invoke(serviceBean, parameters);

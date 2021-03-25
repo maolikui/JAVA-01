@@ -7,4 +7,8 @@ public class RpcfxResponse {
     private Object result;
     private boolean status;
     private Exception exception;
+
+    public boolean hasException() {
+        return exception != null;
+    }
 }

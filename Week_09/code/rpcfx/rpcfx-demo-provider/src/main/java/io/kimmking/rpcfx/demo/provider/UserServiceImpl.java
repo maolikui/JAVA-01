@@ -1,8 +1,10 @@
 package io.kimmking.rpcfx.demo.provider;
 
-import io.kimmking.rpcfx.demo.api.User;
+import io.kimmking.rpcfx.annotation.RpcfxService;
+import io.kimmking.rpcfx.demo.entity.User;
 import io.kimmking.rpcfx.demo.api.UserService;
 
+@RpcfxService(UserService.class)
 public class UserServiceImpl implements UserService {
 
     @Override

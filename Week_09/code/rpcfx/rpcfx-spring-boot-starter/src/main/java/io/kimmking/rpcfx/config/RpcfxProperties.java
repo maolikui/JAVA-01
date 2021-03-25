@@ -1,16 +1,16 @@
 package io.kimmking.rpcfx.config;
 
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(prefix = "rpcfx-server")
+/**
+ * rpcfx配置
+ *
+ * @author Liquid
+ */
+@ConfigurationProperties(prefix = "rpcfx")
+@Data
 public class RpcfxProperties {
     private Integer port;
-
-    public Integer getPort() {
-        return port;
-    }
-
-    public void setPort(Integer port) {
-        this.port = port;
-    }
+    private String zkAddress;
 }
