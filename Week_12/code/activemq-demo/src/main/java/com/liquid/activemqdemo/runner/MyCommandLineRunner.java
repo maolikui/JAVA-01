@@ -24,6 +24,8 @@ public class MyCommandLineRunner implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         // queueProducer.send();
-        topicPublisher.publish();
+        // queueProducer.send2();
+        // topicPublisher.publish();
+        topicPublisher.publish2();
     }
 }
