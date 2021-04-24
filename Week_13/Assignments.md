@@ -32,5 +32,5 @@ docker run -d --name kafka-manager -p 9000:9000 -e ZK_HOSTS=192.168.0.131:2181 s
 
 3.client端启动消费者线程定时从broker server pull 消息
 
-答案代码链接(https://github.com/maolikui/JAVA-01/tree/main/Week_13/code/kafka-demo/liquid-mq)
+答案代码链接(https://github.com/maolikui/JAVA-01/tree/main/Week_13/code/liquid-mq)
 
