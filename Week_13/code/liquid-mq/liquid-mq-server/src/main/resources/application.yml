@@ -1,0 +1,6 @@
+server:
+  port: 8088
+
+rpcfx:
+  port: 9001
+  zk-address: 192.168.0.130:2181
